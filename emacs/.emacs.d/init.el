@@ -20,7 +20,19 @@
 ;;
 ;; Most likely the whole `load' will crash fantastically and I will not have any
 ;; idea why or how to fix it, but it works now so... I guess it's fine?
-
+;;
+;; PS: It's obviously not fine.
+;;
+;; TODO:
+;;
+;; 1. Move away from a per-package config file (see `which-key') and have more
+;;    logical blocks, like `completion'. I guess it should be fine to have
+;;    several files for ruby, clojure, etc.
+;;
+;; 2. Use `require' instead of `load' as it is highly recommended. Probably
+;;    having a prefix will avoid potential collisions.
+;;
+;; 3. Switch from Helm to Ivy + Swiper + Counsel.
 (load "completion/company")
 (load "completion/helm")
 
