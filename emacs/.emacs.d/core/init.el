@@ -101,4 +101,4 @@
 
   (add-hook 'emacs-startup-hook 'acm-finalize))
 
-(provide 'core-init)
+(provide 'acm/init)

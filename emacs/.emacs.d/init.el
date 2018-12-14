@@ -6,6 +6,14 @@
 ;; This file is not part of GNU Emacs.
 ;;
 ;; License: GPLv2
+;;
+;; Inspired by the configuration files of several people like:
+;;
+;; * Bozhidar Batsov (https://github.com/bbatsov/prelude)
+;; * Henrik Lissner (https://github.com/hlissner/doom-emacs)
+;; * Steve Purcell (https://github.com/purcell/emacs.d)
+;;
+;; ... and probably others I've seen on https://github.com/caisah/emacs.dz.
 
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
@@ -14,7 +22,7 @@
 ;; (package-initialize)
 
 ;; Bootstrap the configuration
-(require 'core-init (concat user-emacs-directory "core/init"))
+(require 'acm/init (concat user-emacs-directory "core/init"))
 
 ;; I honestly have no idea what I'm doing here.
 ;;
@@ -33,16 +41,25 @@
 ;;    having a prefix will avoid potential collisions.
 ;;
 ;; 3. Switch from Helm to Ivy + Swiper + Counsel.
-(load "completion/company")
-(load "completion/helm")
 
-(load "tools/dired")
-(load "tools/indent")
-(load "tools/multi-term")
-(load "tools/neotree")
-(load "tools/projectile")
+;; Interface, including:
+;; * startup screen
+;; * typography
+;; * theme
+;; * general user experience
+(require 'acm/ux (concat acm-modules-dir "ux"))
 
-(load "ui/ace-window")
-(load "ui/fonts")
-(load "ui/theme")
-(load "ui/which-key")
+;; General tools, like:
+;; * completion
+;; * navigating files
+;; * moving through windows
+;; * working with git
+(require 'acm/tools (concat acm-modules-dir "tools"))
+
+;; Context-specific settings
+;; (require 'acm/org     (concat acm-modules-dir "org"))
+(require 'acm/ruby    (concat acm-modules-dir "ruby"))
+(require 'acm/clojure (concat acm-modules-dir "clojure"))
+;; (require 'acm/elisp)
+;; (require 'acm/data)     ; JSON and friends
+;; (require 'acm/blogging) ; Jekyll or something like it 
