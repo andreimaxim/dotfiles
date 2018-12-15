@@ -1,5 +1,33 @@
-#+TITLE: Emacs Configuration
+#+TITLE: Emacs config
 #+AUTHOR: Andrei Maxim
+#+DATE: Sat Dec 15 15:38:00 2018
+#+PROPERTY: header-args :tangle yes
+
+This is my personal Emacs configuration and, due to my very poor knowledge of 
+anything lisp-y, it's probably very poorly put together. However, as a former
+Vim-user-turned-Rubymine-user-turned-Emacs-user, I'm pretty happy with it.
+
+The configuration is based on the idea of [[https://en.wikipedia.org/wiki/Literate_programming][literate programming]] promoted by
+Donald E. Knuth and quite popular in some [[https://github.com/caisah/emacs.dz][Emacs circles]], especially when it
+comes to configuring Emacs. Initially I was put off and tried to split
+everything into files, but that was because I never truly understood
+how well configuration files and literate programming work together and
+how simple it is to put together everything using Emacs Org-mode.
+
+So, if you're reading this and have no clue what I'm saying, here's the
+gist: on start-up, Emacs will extract all the code blocks you see in this
+document and put them in order and use that as the configuration
+file.
+
+It's all done using this tiny snippet in your Emacs ~init.el~ file:
+
+#+begin_src emacs-lisp :tangle no
+(require 'org)
+(org-babel-load-file (expand-file-name "README.org" user-emacs-directory))
+#+end_src
+
+Fortunately, Github parses the ~README.org~ file quite nicely so the Emacs
+configuration file is also the documentation of the code. Quite neat, right?
 
 * Configuration
 

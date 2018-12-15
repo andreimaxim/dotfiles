@@ -9,6 +9,9 @@
  '(jdee-db-active-breakpoint-face-colors (cons "#1B2229" "#51afef"))
  '(jdee-db-requested-breakpoint-face-colors (cons "#1B2229" "#98be65"))
  '(jdee-db-spec-breakpoint-face-colors (cons "#1B2229" "#3f444a"))
+ '(package-selected-packages
+   (quote
+    (flycheck-color-mode-line yard-mode which-key use-package smartparens ruby-tools ruby-test-mode rspec-mode robe restclient rbenv rake rainbow-delimiters neotree multi-term minitest magit ivy-hydra ibuffer-projectile highlight-numbers highlight-indentation gitignore-mode gitconfig-mode git-timemachine git-gutter-fringe ggtags flyspell-correct-ivy flycheck-pos-tip flx fill-column-indicator enh-ruby-mode doom-themes doom-modeline dired-k counsel-projectile counsel-gtags company-quickhelp company-dict cider bundler better-defaults auto-package-update aggressive-indent ace-window)))
  '(tooltip-mode -1))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
