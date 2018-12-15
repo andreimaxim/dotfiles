@@ -19,122 +19,117 @@ gist: on start-up, Emacs will extract all the code blocks you see in this
 document and put them in order and use that as the configuration
 file.
 
-It's all done using this tiny snippet in your Emacs ~init.el~ file:
+It's all done using this tiny snippet in your Emacs =init.el= file:
 
 #+begin_src emacs-lisp :tangle no
 (require 'org)
 (org-babel-load-file (expand-file-name "README.org" user-emacs-directory))
 #+end_src
 
-Fortunately, Github parses the ~README.org~ file quite nicely so the Emacs
-configuration file is also the documentation of the code. Quite neat, right?
+Fortunately, Github parses the =README.org= file quite nicely so the Emacs
+configuration file is also the documentation of the code. 
 
-* Configuration
+Quite neat, right?
 
-Some defaults taken verbatim from emacs-doom:
+* Package Management
 
-#+begin_src emacs-lisp
-(defvar acm-debug-mode (or (getenv "DEBUG") init-file-debug)
-  "If non-nil, debug is enabled")
+By default, Emacs has just one repository enabled, and that is [[https://elpa.gnu.org/][GNU ELPA]] 
+(which stands for Emacs Lisp Package Archive). Since the packages are
+signed, it's slightly more secure. The only downside is that it requires
+all packages to be released under some sort of FSF-compliant license,
+which is not always the case.
 
-(defvar acm-emacs-dir (file-truename user-emacs-directory)
-  "The path to the emacs.d directory.")
+The [[https://melpa.org/][MELPA]] package repository is a commonly-used third-party package
+archive that ignores the license requirements of ELPA. Also, it pulls
+the data automatically from the master branch of the git repo, so
+package developers no longer need to do a release.
 
-(defvar acm-local-dir (concat acm-emacs-dir "local/")
-  "Root directory for local Emacs files.")
-
-(defvar acm-etc-dir (concat acm-emacs-dir "etc/")
-  "Directory for non-volatile storage, like binaries and external dependencies.")
-
-(defvar acm-cache-dir (concat acm-emacs-dir "cache/")
-  "Directory for volatile storage, like cache files.")
-
-(defvar acm-packages-dir (concat acm-emacs-dir "packages/")
-  "Where packages.el, various plugins and their caches are stored.")
-
-(setq-default
- ad-redefinition-action 'accept   ; silence advised function warnings 
- apropos-do-all t                 ; make `apropos' more useful
- compilation-always-kill t        ; kill compilation process before starting another
- compilation-ask-about-save nil   ; save all buffers on `compile'
- compilation-scroll-output t
- confirm-nonexistent-file-or-buffer t
- enable-recursive-minibuffers nil
- idle-update-delay 2              ; update ui less often
- ;; keep the point out of the minibuffer
- minibuffer-prompt-properties '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt)
- ;; History & backup settings (save nothing, that's what git is for)
- auto-save-default nil
- create-lockfiles nil
- history-length 500
- make-backup-files nil
- ;; files
- abbrev-file-name             (concat acm-local-dir "abbrev.el") 
- auto-save-list-file-name     (concat acm-cache-dir "autosave")
- backup-directory-alist       (list (cons "." (concat acm-cache-dir "backup/"))))
-#+end_src
-
-
-* Initialization procedure
-
-Move the custom definitions out of ~init.el~.
+There is also a /stable/ version of MELPA, but it's under maintenance.
 
 #+begin_src emacs-lisp
-(setq custom-file (concat acm-etc-dir "custom.el"))
-(load custom-file t t)
-#+end_src
-
-Be quiet at startup and don't load anything unnecessary.
-
-#+begin_src emacs-lisp
-(unless noninteractive
-  (advice-add #'display-startup-echo-area-message :override #'ignore)
-  (setq inhibit-startup-message t
-        inhibit-startup-echo-area-message user-login-name
-        inhibit-default-init t
-        initial-major-mode 'fundamental-mode
-        initial-scratch-message nil
-        mode-line-format nil))
-
-(eval-and-compile
-  (defvar acm--file-name-handler-alist file-name-handler-alist)
-
-  (unless (or after-init-time noninteractive)
-    ;; One of the contributors to long startup times is the garbage collector,
-    ;; so we up its memory threshold, temporarily. It is reset later in
-    ;; `acm-finalize'.
-    (setq gc-cons-threshold 402653184
-          gc-cons-percentage 0.6
-          file-name-handler-alist nil))
-
-  (require 'cl-lib)
-
-(require 'package)
-
-(setq package-enable-at-startup nil)
 (add-to-list 'package-archives
 	     '("melpa" . "https://melpa.org/packages/"))
-(add-to-list 'package-archives
-             '("org" . "https://orgmode.org/elpa/") t)
-
-(package-initialize)
-
-;; Bootstrap `use-package'
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-
-(setq use-package-always-ensure t)
-  (defun acm-finalize ()
-    ;; If you forget to reset this, you'll get stuttering and random freezes!
-    (setq gc-cons-threshold 16777216
-          gc-cons-percentage 0.1
-          file-name-handler-alist acm--file-name-handler-alist))
-
-  (add-hook 'emacs-startup-hook 'acm-finalize))
 #+end_src
 
-* Themes
+Org mode, the Emacs major mode used to write this file, also has a
+package archive.
+
+#+begin_src emacs-lisp
+(add-to-list 'package-archives
+             '("org" . "https://orgmode.org/elpa/") t)
+#+end_src
+
+
+In order to actually enable packages, John Wiegley's excellent [[https://github.com/jwiegley/use-package][use-package]] is 
+used as it allows to declaratively configure packages quite easily.
+
+#+begin_src emacs-lisp
+(eval-when-compile
+  (require 'use-package))
+#+end_src
+
+* User Experience
+
+First, start with a good set of defaults based on Phil Hagelberg's
+=better-defaults= package.
+
+Remove the menubar, the toolbar and scrollbars:
+
+#+begin_src emacs-lisp
+(menu-bar-mode -1)
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode -1))
+(when (fboundp 'horizontal-scroll-bar-mode)
+  (horizontal-scroll-bar-mode -1))
+#+end_src
+
+Configure Emacs to delete characters /up to/ the specified character, just like
+other editors would normally do:
+
+#+begin_src emacs-lisp
+(autoload 'zap-up-to-char "misc"
+  "Kill up to, but not including ARGth occurrence of CHAR." t)
+#+end_src
+
+If there are multiple buffers with the same name Emacs will simply add a number,
+like =<2>= or =<3>=, which is not helpful. This will tell Emacs to add the
+name of the folder before the name of the file, in case there are multiple buffers
+with the same name.
+
+So, in case there is a =src/foo/Makefile= and a =src/bar/Makefile=, the buffer
+names will be =foo/Makefile= and =bar/Makefile=.
+
+#+begin_src emacs-lisp
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'forward)
+#+end_src
+
+Remember the last place a file was visited:
+
+#+begin_src emacs-lisp
+(require 'saveplace)
+(setq-default save-place t)
+#+end_src
+
+** General purpose shortcuts
+
+Use =Meta-/= to expand the word before the point, based on patterns or the text
+already inserted in the buffer:
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "M-/") 'hippie-expand)
+#+end_src
+
+Use the more enhanced =ibuffer= instead of the default Emacs command that lists
+buffers:
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+#+end_src
+
+
 
 This includes the actual theme, typography and various user experience bits.
 
