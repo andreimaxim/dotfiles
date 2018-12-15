@@ -114,7 +114,7 @@ This includes the actual theme, typography and various user experience bits.
 ;; Actual UI and various UX improvements.
 (use-package better-defaults)  
 
-(set-default-font "Pragmata Pro-13")
+(set-frame-font "Pragmata Pro-13")
 (setq-default line-spacing 2)
 
 (use-package highlight-indentation)
@@ -181,6 +181,13 @@ This includes the actual theme, typography and various user experience bits.
 * Tools
 
 #+begin_src emacs-lisp
+;; Auto refresh buffers
+(global-auto-revert-mode 1)
+
+;; Also auto refresh dired, but be quiet about it
+(setq global-auto-revert-non-file-buffers t)
+(setq auto-revert-verbose nil)
+
 (use-package auto-package-update
   :ensure t
   :config
@@ -330,7 +337,7 @@ This includes the actual theme, typography and various user experience bits.
         projectile-git-command "fd . --hidden --no-ignore-vcs --print0 --color never --ignore-file ~/.fdrc"
         projectile-indexing-method 'alien)
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
-  (projectile-global-mode)
+  (projectile-mode)
   )
 
 (use-package ibuffer-projectile)
@@ -389,7 +396,12 @@ This includes the actual theme, typography and various user experience bits.
 
 * Clojure
 
-TBD
+Install cider and Clojure mode.
+
+#+begin_src emacs-lisp
+(use-package cider)
+(use-package clojure-mode)
+#+end_src
 
 * Data
 
@@ -398,3 +410,26 @@ TBD
 * Blogging
 
 TBD
+* Org mode
+
+Found on [[https://github.com/danielmai/.emacs.d/blob/master/config.org][this]] config:
+
+#+begin_src emacs-lisp
+(bind-key "C-c l" 'org-store-link)
+(bind-key "C-c c" 'org-capture)
+(bind-key "C-c a" 'org-agenda)
+
+(setq org-src-fontify-natively t
+      org-src-window-setup 'current-window
+      org-src-strip-leading-and-trailing-blank-lines t
+      org-src-preserve-indentation t
+      org-src-tab-acts-natively t)
+
+(add-to-list 'org-structure-template-alist '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC" ""))
+(add-to-list 'org-structure-template-alist '("rb" "#+BEGIN_SRC ruby\n?\n#+END_SRC" ""))
+(add-to-list 'org-structure-template-alist '("sh" "#+BEGIN_SRC sh\n?\n#+END_SRC" ""))
+(add-to-list 'org-structure-template-alist '("md" "#+BEGIN_SRC markdown\n?\n#+END_SRC" ""))
+(add-to-list 'org-structure-template-alist '("gq" "#+BEGIN_SRC graphql\n?\n#+END_SRC" ""))
+#+end_src
+
+
