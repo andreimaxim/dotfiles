@@ -1,4 +1,5 @@
 /.last-package-update-day
+/.secrets.el
 /auto-save-list
 /backups
 /cache

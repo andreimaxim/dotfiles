@@ -59,6 +59,7 @@ package archive.
              '("org" . "https://orgmode.org/elpa/") t)
 #+end_src
 
+** Customize the customizations!
 
 In order to actually enable packages, John Wiegley's excellent [[https://github.com/jwiegley/use-package][use-package]] is 
 used as it allows to declaratively configure packages quite easily.
@@ -66,6 +67,28 @@ used as it allows to declaratively configure packages quite easily.
 #+begin_src emacs-lisp
 (eval-when-compile
   (require 'use-package))
+#+end_src
+
+Various customization settings can be done from within Emacs, which will
+add some emacs code at the end of the =init.el=. In some cases, it might
+mess up the configuration, so this should configure Emacs to work with a
+separate =.custom.el= for customizations.
+
+#+begin_src emacs-lisp
+(setq-default custom-file (expand-file-name ".custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file))
+#+end_src
+
+** Dedicated space for private information
+
+Store private settings like API tokens, keys, host names and so on  in a 
+=.secrets.el= file, which should be ignored by the version control system.
+
+#+begin_src emacs-lisp
+(let ((secret.el (expand-file-name ".secret.el" user-emacs-directory)))
+  (when (file-exists-p secret.el)
+    (load secret.el)))
 #+end_src
 
 * User Experience
@@ -113,7 +136,76 @@ Remember the last place a file was visited:
 (setq-default save-place t)
 #+end_src
 
-** General purpose shortcuts
+** Default settings
+
+Avoid loading outdated compiled files:
+
+#+begin_src emacs-lisp
+(setq load-prefer-newer t)
+#+end_src
+
+Do not display the default start-up screen:
+
+#+begin_src emacs-lisp
+(setq-default inhibit-startup-screen t)
+#+end_src
+
+Show an empty scratch buffer:
+
+#+begin_src emacs-lisp
+(setq-default initial-scratch-message "")
+#+end_src
+
+Always use UTF-8:
+
+#+begin_src emacs-lisp
+(set-default-coding-systems 'utf-8)
+#+end_src
+
+Always indent using spaces instead of tabs:
+
+#+begin_src emacs-lisp
+(setq-default indent-tabs-mode nil)
+#+end_src
+
+When copying to the clipboard, add the existing contents of the clipboard to
+Emacs's kill ring so it's not completely lost.
+
+#+begin_src emacs-lisp
+(setq save-interprogram-paste-before-kill t)
+#+end_src
+
+Add a final newline to files:
+
+#+begin_src emacs-lisp
+(setq-default require-final-newline t)
+#+end_src
+
+Use only a visible bell:
+
+#+begin_src emacs-lisp
+(setq-default visible-bell t)
+#+end_src
+
+Store the backups in a dedicated folder and perform some automated cleanup:
+
+#+begin_src emacs-lisp
+(setq backup-directory-alist `(("." . ,(concat user-emacs-directory
+                                               "backups")))
+      backup-by-copying t
+      version-control t
+      delete-old-versions t
+      kept-new-versions 20
+      kept-old-versions 5)
+#+end_src
+
+Always confirm before exiting Emacs:
+
+#+begin_src emacs-lisp
+(setq-default confirm-kill-emacs 'yes-or-no-p)
+#+end_src
+
+** Global shortcuts
 
 Use =Meta-/= to expand the word before the point, based on patterns or the text
 already inserted in the buffer:
@@ -122,26 +214,47 @@ already inserted in the buffer:
 (global-set-key (kbd "M-/") 'hippie-expand)
 #+end_src
 
-Use the more enhanced =ibuffer= instead of the default Emacs command that lists
-buffers:
+Bind =C-x C-b= to the more enhanced =ibuffer= instead of the default Emacs command 
+that lists buffers:
 
 #+begin_src emacs-lisp
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 #+end_src
 
-
-
-This includes the actual theme, typography and various user experience bits.
+Bind =M-z= to use the aforementioned =zap-up-to-char= function:
 
 #+begin_src emacs-lisp
-;; Actual UI and various UX improvements.
-(use-package better-defaults)  
+(global-set-key (kbd "M-z") 'zap-up-to-char)
+#+end_src
 
-(set-frame-font "Pragmata Pro-13")
-(setq-default line-spacing 2)
+Use the crux package to define some useful shortcuts:
 
+#+begin_src emacs-lisp
+(use-package crux
+    :ensure t
+    :bind (("C-a" . crux-move-beginning-of-line)
+           ("C-k" . crux-smart-kill-line)
+           ("C-<backspace>" . crux-kill-line-backwards)
+           ("C-c r" . crux-rename-file-and-buffer)))
+#+end_src
+
+** Theme
+
+I've grown accustomed to the [[https://www.fsd.it/shop/fonts/pragmatapro/][Pragmata Pro]] font, which can feel a bit too narrow
+on big screens but it's extremely legible on a regular laptop screen.
+
+Getting all the weights and variants is quite expensive (roughly 199 Euros), but
+you can easily get away with the Essentials pack, especially if you're not into
+ligatures. 
+
+#+begin_src emacs-lisp
+(set-frame-font "Essential PragmataPro-13")
+#+end_src
+
+#+begin_src emacs-lisp
 (use-package highlight-indentation)
 (use-package highlight-numbers)
+
 
 ;; Funky modeline, from the Doom project
 (use-package dash)
