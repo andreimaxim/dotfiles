@@ -1,0 +1,400 @@
+#+TITLE: Emacs Configuration
+#+AUTHOR: Andrei Maxim
+
+* Configuration
+
+Some defaults taken verbatim from emacs-doom:
+
+#+begin_src emacs-lisp
+(defvar acm-debug-mode (or (getenv "DEBUG") init-file-debug)
+  "If non-nil, debug is enabled")
+
+(defvar acm-emacs-dir (file-truename user-emacs-directory)
+  "The path to the emacs.d directory.")
+
+(defvar acm-local-dir (concat acm-emacs-dir "local/")
+  "Root directory for local Emacs files.")
+
+(defvar acm-etc-dir (concat acm-emacs-dir "etc/")
+  "Directory for non-volatile storage, like binaries and external dependencies.")
+
+(defvar acm-cache-dir (concat acm-emacs-dir "cache/")
+  "Directory for volatile storage, like cache files.")
+
+(defvar acm-packages-dir (concat acm-emacs-dir "packages/")
+  "Where packages.el, various plugins and their caches are stored.")
+
+(setq-default
+ ad-redefinition-action 'accept   ; silence advised function warnings 
+ apropos-do-all t                 ; make `apropos' more useful
+ compilation-always-kill t        ; kill compilation process before starting another
+ compilation-ask-about-save nil   ; save all buffers on `compile'
+ compilation-scroll-output t
+ confirm-nonexistent-file-or-buffer t
+ enable-recursive-minibuffers nil
+ idle-update-delay 2              ; update ui less often
+ ;; keep the point out of the minibuffer
+ minibuffer-prompt-properties '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt)
+ ;; History & backup settings (save nothing, that's what git is for)
+ auto-save-default nil
+ create-lockfiles nil
+ history-length 500
+ make-backup-files nil
+ ;; files
+ abbrev-file-name             (concat acm-local-dir "abbrev.el") 
+ auto-save-list-file-name     (concat acm-cache-dir "autosave")
+ backup-directory-alist       (list (cons "." (concat acm-cache-dir "backup/"))))
+#+end_src
+
+
+* Initialization procedure
+
+Move the custom definitions out of ~init.el~.
+
+#+begin_src emacs-lisp
+(setq custom-file (concat acm-etc-dir "custom.el"))
+(load custom-file t t)
+#+end_src
+
+Be quiet at startup and don't load anything unnecessary.
+
+#+begin_src emacs-lisp
+(unless noninteractive
+  (advice-add #'display-startup-echo-area-message :override #'ignore)
+  (setq inhibit-startup-message t
+        inhibit-startup-echo-area-message user-login-name
+        inhibit-default-init t
+        initial-major-mode 'fundamental-mode
+        initial-scratch-message nil
+        mode-line-format nil))
+
+(eval-and-compile
+  (defvar acm--file-name-handler-alist file-name-handler-alist)
+
+  (unless (or after-init-time noninteractive)
+    ;; One of the contributors to long startup times is the garbage collector,
+    ;; so we up its memory threshold, temporarily. It is reset later in
+    ;; `acm-finalize'.
+    (setq gc-cons-threshold 402653184
+          gc-cons-percentage 0.6
+          file-name-handler-alist nil))
+
+  (require 'cl-lib)
+
+(require 'package)
+
+(setq package-enable-at-startup nil)
+(add-to-list 'package-archives
+	     '("melpa" . "https://melpa.org/packages/"))
+(add-to-list 'package-archives
+             '("org" . "https://orgmode.org/elpa/") t)
+
+(package-initialize)
+
+;; Bootstrap `use-package'
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(setq use-package-always-ensure t)
+  (defun acm-finalize ()
+    ;; If you forget to reset this, you'll get stuttering and random freezes!
+    (setq gc-cons-threshold 16777216
+          gc-cons-percentage 0.1
+          file-name-handler-alist acm--file-name-handler-alist))
+
+  (add-hook 'emacs-startup-hook 'acm-finalize))
+#+end_src
+
+* Themes
+
+This includes the actual theme, typography and various user experience bits.
+
+#+begin_src emacs-lisp
+;; Actual UI and various UX improvements.
+(use-package better-defaults)  
+
+(set-default-font "Pragmata Pro-13")
+(setq-default line-spacing 2)
+
+(use-package highlight-indentation)
+(use-package highlight-numbers)
+
+;; Funky modeline, from the Doom project
+(use-package dash)
+(use-package all-the-icons)
+(use-package eldoc-eval
+  :config
+  (eldoc-in-minibuffer-mode 1))
+
+(use-package doom-modeline
+  :config
+  (setq doom-modeline-height 27
+        doom-modeline-bar-width 1
+        doom-modeline-buffer-file-name-style 'truncate-except-project)
+  (doom-modeline-init))
+
+(use-package doom-themes
+  :config
+  (load-theme 'doom-one t)
+  (doom-themes-org-config)
+  (doom-themes-neotree-config))
+
+(use-package fill-column-indicator)
+(use-package git-gutter-fringe
+  :ensure t
+  :config
+  (global-git-gutter-mode +1))
+
+(use-package ace-window
+  :commands
+  (ace-window ace-swap-window ace-delete-window
+              ace-select-window ace-delete-other-windows)
+  :init
+  (define-key global-map [remap other-window] #'ace-window))
+
+(use-package paren
+  :ensure nil
+  :config
+  (show-paren-mode t))
+
+(use-package hl-line
+  :ensure nil
+  :config
+  (global-hl-line-mode))
+
+;; (use-package highlight-numbers
+;;   :ensure t
+;;   :hook
+;;   (prog-mode . highlight-numbers-mode))
+
+(use-package which-key
+  :config
+  (which-key-mode))
+
+;; Always show the column number
+(setq column-number-mode t)
+;; Use the 26+ mode to display line numbers
+(global-display-line-numbers-mode)
+#+end_src
+
+* Tools
+
+#+begin_src emacs-lisp
+(use-package auto-package-update
+  :ensure t
+  :config
+  (setq auto-package-update-delete-old-versions t
+        auto-package-update-interval 4)
+  (auto-package-update-maybe))
+
+(use-package flx)
+
+(use-package ivy
+  :demand
+  :config
+  (setq ivy-use-virtual-buffers t
+        ivy-count-format "%d/%d "
+        ivy-re-builders-alist '((swiper . ivy--regex-plus)
+                                (counsel-ag . ivy--regex-plus)
+                                (t . ivy--regex-fuzzy))
+        ivy-initial-inputs-alist nil)
+  (ivy-mode 1))
+
+(use-package ivy-hydra)
+
+(use-package counsel
+  :bind
+  (("M-x" . counsel-M-x) 
+   ("C-x C-f" . counsel-find-file)
+   ("C-c a" . counsel-ag)))
+
+(use-package counsel-gtags
+  :bind
+  ("M-t" . counsel-gtags-find-definition)
+  ("M-r" . counsel-gtags-find-reference)
+  ("M-s" . counsel-gtags-find-symbol)
+  ("M-," . counsel-gtags-go-backward))
+
+(use-package counsel-projectile)
+
+(use-package swiper
+  :bind
+  (("C-s" . swiper)))
+
+(use-package company
+  :commands (company-mode global-company-mode company-complete
+                          company-complete-common company-manual-begin company-grab-line)
+  :config
+  (setq company-idle-delay nil
+        company-tooltip-limit 10
+        company-dabbrev-downcase nil
+        company-dabbrev-ignore-case nil
+        company-dabbrev-code-other-buffers t
+        company-tooltip-align-annotations t
+        company-require-match 'never
+        company-global-modes '(not eshell-mode comint-mode erc-mode message-mode help-mode gud-mode)
+        company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
+        company-backends '(company-capf company-dabbrev company-ispell)
+        company-transformers '(company-sort-by-occurrence))
+  (global-company-mode +1))
+
+(use-package flycheck)
+(use-package flycheck-pos-tip)
+(use-package flyspell-correct-ivy)
+
+(use-package company-dict)
+
+(use-package company-quickhelp
+  :after company
+  :config
+  (setq company-quickhelp-delay nil)
+  (company-quickhelp-mode +1))
+
+
+(use-package dired-k
+  :config
+  (setq dired-k-style 'git))
+(use-package ggtags)
+(use-package better-defaults)
+
+(use-package rainbow-delimiters
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+(use-package smartparens
+  :config
+  (smartparens-global-mode))
+
+(use-package git-timemachine)
+(use-package gitconfig-mode)
+(use-package gitignore-mode)
+(use-package magit
+  :config
+  (setq magit-completing-read-function 'ivy-completing-read
+        magit-status-fullscreen t
+        magit-repository-directories '("~/src/")))
+
+(use-package aggressive-indent
+  :config 
+  (global-aggressive-indent-mode 1)
+  (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
+
+(use-package multi-term
+  :commands
+  (multi-term multi-term-next multi-term-prev)
+  :config
+  (setq multi-term-program (getenv "SHELL")
+        multi-term-switch-after-close 'PREVIOUS))
+
+(use-package neotree
+  :commands (neotree-show
+             neotree-hide
+             neotree-toggle
+             neotree-dir
+             neotree-find
+             neo-global--with-buffer
+             neo-global--window-exists-p)
+  :config
+  (setq neo-create-file-auto-open nil
+        neo-auto-indent-point nil
+        neo-autorefresh nil
+        neo-mode-line-type 'none
+        neo-window-width 70
+        neo-show-updir-line nil
+        neo-theme 'nerd ; fallback
+        neo-banner-message nil
+        neo-confirm-create-file #'off-p
+        neo-confirm-create-directory #'off-p
+        neo-show-hidden-files nil
+        neo-keymap-style 'concise
+        neo-hidden-regexp-list
+        '(;; vcs folders
+          "^\\.\\(git\\|hg\\|svn\\)$"
+          ;; compiled files
+          "\\.\\(pyc\\|o\\|elc\\|lock\\|css.map\\)$"
+          ;; generated files, caches or local pkgs
+          "^\\(node_modules\\|vendor\\|.\\(project\\|cask\\|yardoc\\|sass-cache\\)\\)$"
+          ;; org-mode folders
+          "^\\.\\(sync\\|export\\|attach\\)$"
+          "~$"
+          "^#.*#$"))
+
+  (when (bound-and-true-p winner-mode)
+    (push neo-buffer-name winner-boring-buffers)))
+
+(use-package projectile
+  :ensure t
+  :config
+  (setq projectile-completion-system 'ivy
+        projectile-project-search-path '("~/src/")
+        projectile-git-command "fd . --hidden --no-ignore-vcs --print0 --color never --ignore-file ~/.fdrc"
+        projectile-indexing-method 'alien)
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+  (projectile-global-mode)
+  )
+
+(use-package ibuffer-projectile)
+
+(use-package restclient
+  :mode ("\\.http\\'" . restclient-mode))
+
+#+end_src
+
+* Ruby programming
+
+#+begin_src emacs-lisp
+(use-package bundler)
+
+(use-package enh-ruby-mode
+  :mode (("Appraisals\\'" . enh-ruby-mode)
+         ("\\(Rake\\|Thor\\|Guard\\|Gem\\|Cap\\|Vagrant\\|Berks\\|Pod\\|Puppet\\)file\\'" . enh-ruby-mode)
+         ("\\.\\(rb\\|rabl\\|ru\\|builder\\|rake\\|thor\\|gemspec\\|jbuilder\\)\\'" . enh-ruby-mode))
+  :interpreter "ruby"
+  :init
+  (progn
+    (setq enh-ruby-deep-indent-paren nil
+          enh-ruby-hanging-paren-deep-indent-level 2)))
+
+(use-package flycheck
+  :init
+  (add-hook 'prog-mode-hook 'global-flycheck-mode)
+  (setq flycheck-ruby-rubocop-executable "/usr/local/bin/rubocop"))
+
+(use-package inf-ruby
+  :hook (enh-ruby-mode . inf-ruby-minor)
+  :init
+  (add-hook 'compilation-filter-hook 'inf-ruby-auto-enter))
+
+(use-package minitest)
+(use-package rbenv
+  :hook (enh-ruby-mode . rbenv))
+(use-package robe
+  :init
+  (add-hook 'enh-ruby-mode-hook 'robe-mode))
+
+(use-package rspec-mode)
+(use-package ruby-test-mode)
+(use-package ruby-tools)
+(use-package rake)
+(use-package yard-mode
+  :init
+  (add-hook 'enh-ruby-mode-hook 'eldoc-mode)
+  (add-hook 'enh-ruby-mode-hook 'yard-mode))
+
+;; (use-package rcodetools
+;;   :load-path "modules"
+;;   :bind (:map ruby-mode-map
+;;               ("C-c C-c" . xmp)))
+#+end_src
+
+* Clojure
+
+TBD
+
+* Data
+
+TBD
+
+* Blogging
+
+TBD
