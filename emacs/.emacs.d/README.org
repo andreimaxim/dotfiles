@@ -1,35 +1,50 @@
-#+TITLE: Emacs config
+#+TITLE: Emacs Configuration
 #+AUTHOR: Andrei Maxim
 #+DATE: Sat Dec 15 15:38:00 2018
 #+PROPERTY: header-args :tangle yes
 
-This is my personal Emacs configuration and, due to my very poor knowledge of 
-anything lisp-y, it's probably very poorly put together. However, as a former
-Vim-user-turned-Rubymine-user-turned-Emacs-user, I'm pretty happy with it.
+This is a beginner's configuration file that should allow somebody (like one of
+my co-workers) to download Emacs (v26 or higher), clone this repository and start
+being productive basically as quickly as possible, with most of the features you
+would normally find in other editors like Sublime, Atom, Visual Studio Code or
+IDEs like RubyMine together with some instructions on how to use those
+features.
 
-The configuration is based on the idea of [[https://en.wikipedia.org/wiki/Literate_programming][literate programming]] promoted by
-Donald E. Knuth and quite popular in some [[https://github.com/caisah/emacs.dz][Emacs circles]], especially when it
-comes to configuring Emacs. Initially I was put off and tried to split
-everything into files, but that was because I never truly understood
-how well configuration files and literate programming work together and
-how simple it is to put together everything using Emacs Org-mode.
+So, all you need to do to get started is to copy the =.emacs.d= folder in your
+=$HOME= directory (=/Users/<your account/= on macOS, =/home/<your account>= on 
+Linux and probably =C:\Users\<your account>\AppData\Roaming\= on Windows) and
+then start Emacs.
 
-So, if you're reading this and have no clue what I'm saying, here's the
-gist: on start-up, Emacs will extract all the code blocks you see in this
-document and put them in order and use that as the configuration
-file.
+Since Emacs is highly portable, it should work fine on all operating systems,
+including Windows, but there is a chance that you'll probably need to do some
+tinkering for some packages to work correctly.
 
-It's all done using this tiny snippet in your Emacs =init.el= file:
+If you are looking for an actual Emacs starter kit, there are several great ones 
+available:
+
+ - [[http://spacemacs.org/][Spacemacs]], which should be a nice transition for people coming from Vim
+ - [[https://github.com/hlissner/doom-emacs][Doom]], another started kit for Vim users
+ - [[https://github.com/purcell/emacs.d][Steve Purcell's emacs.d]], which is a "reasonable Emacs config"
+ - [[https://github.com/bbatsov/prelude][Prelude]], an opinionated Emacs config
+
+Also, there is a collection of [[https://github.com/caisah/emacs.dz][awesome Emacs configuration]] files from various
+people, should you need inspiration.
+
+The format of the file is based on the idea of [[https://en.wikipedia.org/wiki/Literate_programming][literate programming]] promoted by
+Donald E. Knuth. The format is extremely useful especially for editor
+configuration files like Vim or Emacs because people tend to spend initially
+a lot of time to set up the editor environment and then a lot of time passes
+before having to edit the file again.
+
+Fortunately, Emacs is flexible enough to be able to load this file, parse the
+code blocks and use that as the configuration at start-up. All that's required
+is a tiny snippet in your Emacs =init.el= file:
 
 #+begin_src emacs-lisp :tangle no
 (require 'org)
 (org-babel-load-file (expand-file-name "README.org" user-emacs-directory))
 #+end_src
 
-Fortunately, Github parses the =README.org= file quite nicely so the Emacs
-configuration file is also the documentation of the code. 
-
-Quite neat, right?
 
 * Package Management
 
@@ -59,8 +74,6 @@ package archive.
              '("org" . "https://orgmode.org/elpa/") t)
 #+end_src
 
-** Customize the customizations!
-
 In order to actually enable packages, John Wiegley's excellent [[https://github.com/jwiegley/use-package][use-package]] is 
 used as it allows to declaratively configure packages quite easily.
 
@@ -68,6 +81,29 @@ used as it allows to declaratively configure packages quite easily.
 (eval-when-compile
   (require 'use-package))
 #+end_src
+
+Once that is loaded, add the =use-package-ensure-system-package= package (now that's
+a mouthful) which adds the =ensure-system-package= keyword, which checks the exec
+path for the specified binaries.
+
+#+begin_src emacs-lisp
+(use-package use-package-ensure-system-package
+  :ensure t)
+#+end_src
+
+=use-package= does not auto-update packages:
+
+#+begin_src emacs-lisp
+(use-package auto-package-update
+  :ensure t
+  :config
+  (setq auto-package-update-delete-old-versions t)
+  (setq auto-package-update-hide-results t)
+  (auto-package-update-maybe))
+#+end_src
+
+
+** Customize the customizations!
 
 Various customization settings can be done from within Emacs, which will
 add some emacs code at the end of the =init.el=. In some cases, it might
@@ -243,12 +279,12 @@ The new shortcuts are:
 
 #+begin_src emacs-lisp
 (use-package crux
-    :ensure t
-    :bind (("C-a" . crux-move-beginning-of-line)
-           ("C-k" . crux-smart-kill-line)
-           ("C-<backspace>" . crux-kill-line-backwards)
-           ("C-c n" . crux-cleanup-buffer-or-region)
-           ("C-c r" . crux-rename-file-and-buffer)))
+  :ensure t
+  :bind (("C-a" . crux-move-beginning-of-line)
+         ("C-k" . crux-smart-kill-line)
+         ("C-<backspace>" . crux-kill-line-backwards)
+         ("C-c n" . crux-cleanup-buffer-or-region)
+         ("C-c r" . crux-rename-file-and-buffer)))
 #+end_src
 
 ** Theme
@@ -265,8 +301,14 @@ ligatures.
 (set-frame-font "Essential PragmataPro-13")
 #+end_src
 
+
+
 #+begin_src emacs-lisp
-(use-package highlight-indentation)
+(use-package highlight-indentation-guide
+  :ensure t
+  :hook prog-mode
+  :config (setq highlight-indent-guides-method 'character))
+
 (use-package highlight-numbers)
 
 
@@ -503,6 +545,11 @@ ligatures.
 (use-package bundler)
 
 (use-package enh-ruby-mode
+  :ensure-system-package
+  ((rubocop     . "gem install rubocop")
+   (ruby-lint   . "gem install ruby-lint")
+   (ripper-tags . "gem install ripper-tags")
+   (pry         . "gem install pry")))
   :mode (("Appraisals\\'" . enh-ruby-mode)
          ("\\(Rake\\|Thor\\|Guard\\|Gem\\|Cap\\|Vagrant\\|Berks\\|Pod\\|Puppet\\)file\\'" . enh-ruby-mode)
          ("\\.\\(rb\\|rabl\\|ru\\|builder\\|rake\\|thor\\|gemspec\\|jbuilder\\)\\'" . enh-ruby-mode))
