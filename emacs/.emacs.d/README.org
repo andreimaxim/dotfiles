@@ -227,7 +227,19 @@ Bind =M-z= to use the aforementioned =zap-up-to-char= function:
 (global-set-key (kbd "M-z") 'zap-up-to-char)
 #+end_src
 
-Use the crux package to define some useful shortcuts:
+Use the [[https://github.com/bbatsov/crux][crux]] package to define some interactive commands that might improve
+the overall experience when working with indented code.
+
+The new shortcuts are:
+
+ - =C-a= to move to the first non-whitespace character on the line and use 
+   =C-a= again to move to the beginning of the line
+ - =C-k= to kill all the characters from point to the end of the line and
+   use =C-k= again to remove the newline character
+ - =C-<backspace>= to remove all the characters from point to the beginning
+   of the line and adjust indentation
+ - =C-c n= fix indentation for the selected region or the whole buffer
+ - =C-c r= rename the existing buffer and, if it's a file, rename it too
 
 #+begin_src emacs-lisp
 (use-package crux
@@ -235,13 +247,15 @@ Use the crux package to define some useful shortcuts:
     :bind (("C-a" . crux-move-beginning-of-line)
            ("C-k" . crux-smart-kill-line)
            ("C-<backspace>" . crux-kill-line-backwards)
+           ("C-c n" . crux-cleanup-buffer-or-region)
            ("C-c r" . crux-rename-file-and-buffer)))
 #+end_src
 
 ** Theme
 
 I've grown accustomed to the [[https://www.fsd.it/shop/fonts/pragmatapro/][Pragmata Pro]] font, which can feel a bit too narrow
-on big screens but it's extremely legible on a regular laptop screen.
+at first, especially on big screens, but it's extremely legible on a regular 
+laptop screen.
 
 Getting all the weights and variants is quite expensive (roughly 199 Euros), but
 you can easily get away with the Essentials pack, especially if you're not into
