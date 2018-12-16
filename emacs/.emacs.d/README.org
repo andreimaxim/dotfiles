@@ -27,7 +27,7 @@ available:
  - [[https://github.com/purcell/emacs.d][Steve Purcell's emacs.d]], which is a "reasonable Emacs config"
  - [[https://github.com/bbatsov/prelude][Prelude]], an opinionated Emacs config
 
-Also, there is a collection of [[https://github.com/caisah/emacs.dz][awesome Emacs configuration]] files from various
+Also, there is a collection of [[https://github.com/caisah/emacs.dz][awesome Emacs configurations]] from various
 people, should you need inspiration.
 
 The format of the file is based on the idea of [[https://en.wikipedia.org/wiki/Literate_programming][literate programming]] promoted by
