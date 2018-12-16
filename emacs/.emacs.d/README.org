@@ -302,13 +302,7 @@ ligatures.
 #+end_src
 
 
-
 #+begin_src emacs-lisp
-(use-package highlight-indentation-guide
-  :ensure t
-  :hook prog-mode
-  :config (setq highlight-indent-guides-method 'character))
-
 (use-package highlight-numbers)
 
 
@@ -320,11 +314,13 @@ ligatures.
   (eldoc-in-minibuffer-mode 1))
 
 (use-package doom-modeline
+  :ensure t
+  :defer t
+  :hook (after-init . doom-modeline-init)
   :config
-  (setq doom-modeline-height 27
+  (setq doom-modeline-height 35
         doom-modeline-bar-width 1
-        doom-modeline-buffer-file-name-style 'truncate-except-project)
-  (doom-modeline-init))
+        doom-modeline-buffer-file-name-style 'truncate-except-project))
 
 (use-package doom-themes
   :config
@@ -549,21 +545,40 @@ ligatures.
   ((rubocop     . "gem install rubocop")
    (ruby-lint   . "gem install ruby-lint")
    (ripper-tags . "gem install ripper-tags")
-   (pry         . "gem install pry")))
+   (pry         . "gem install pry"))
   :mode (("Appraisals\\'" . enh-ruby-mode)
          ("\\(Rake\\|Thor\\|Guard\\|Gem\\|Cap\\|Vagrant\\|Berks\\|Pod\\|Puppet\\)file\\'" . enh-ruby-mode)
          ("\\.\\(rb\\|rabl\\|ru\\|builder\\|rake\\|thor\\|gemspec\\|jbuilder\\)\\'" . enh-ruby-mode))
-  :interpreter "ruby"
-  :init
-  (progn
-    (setq enh-ruby-deep-indent-paren nil
-          enh-ruby-hanging-paren-deep-indent-level 2)))
 
+  :config
+  (use-package smartparens-ruby :ensure smartparens)
+  (use-package inf-ruby)
+  (setq enh-ruby-add-encoding-comment-on-save nil
+        enh-ruby-deep-indent-paren nil
+        enh-ruby-hanging-brace-indent-level 2)
+  (add-to-list 'interpreter-mode-alist '("ruby" . enh-ruby-mode))
+  :hook (enh-ruby-mode-hook . inf-ruby-minor-mode))
+#+end_src
+
+Flycheck will use the Ruby interpreter defined by =rbenv=. However, if the
+project is using JRuby, this means that it will start a whole JVM just to
+run Rubocop and friends on a file, which is probably not ideal even on very
+powerful machines.
+
+Since those gems don't need to run with the exact same interpreter, let's
+use the system default.
+
+#+begin_src emacs-lisp
 (use-package flycheck
-  :init
-  (add-hook 'prog-mode-hook 'global-flycheck-mode)
-  (setq flycheck-ruby-rubocop-executable "/usr/local/bin/rubocop"))
+  :hook (prog-mode . global-flycheck-mode)
+  :config
+  (setq flycheck-ruby-rubocop-executable "/usr/local/bin/rubocop")
+  (setq flycheck-ruby-reek-executable "/usr/local/bin/reek")
+  (setq flycheck-ruby-rubylint-executable "/usr/local/bin/rubylint"))
+#+end_src
 
+
+#+begin_src emacs-lisp
 (use-package inf-ruby
   :hook (enh-ruby-mode . inf-ruby-minor)
   :init
@@ -573,17 +588,14 @@ ligatures.
 (use-package rbenv
   :hook (enh-ruby-mode . rbenv))
 (use-package robe
-  :init
-  (add-hook 'enh-ruby-mode-hook 'robe-mode))
+  :hook (enh-ruby-mode . robe-mode))
 
 (use-package rspec-mode)
 (use-package ruby-test-mode)
 (use-package ruby-tools)
 (use-package rake)
 (use-package yard-mode
-  :init
-  (add-hook 'enh-ruby-mode-hook 'eldoc-mode)
-  (add-hook 'enh-ruby-mode-hook 'yard-mode))
+  :hook (enh-ruby-mode . yard-mode))
 
 ;; (use-package rcodetools
 ;;   :load-path "modules"
