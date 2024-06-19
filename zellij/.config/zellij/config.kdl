@@ -1,3 +1,2 @@
-theme "catpuccin"
-default_layout "compact"
+theme "tokyo-night"
 on_force_close "quit"
