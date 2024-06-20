@@ -365,7 +365,12 @@ require('lazy').setup({
               ['<esc>'] = require('telescope.actions').close,
             },
           },
-          theme = 'ivy',
+          layout_strategy = 'bottom_pane',
+          layout_config = {
+            height = 0.4,
+          },
+          border = false,
+          sorting_strategy = 'ascending',
         },
         extensions = {
           ['ui-select'] = {
