@@ -360,6 +360,11 @@ require('lazy').setup({
         -- },
         -- pickers = {}
         defaults = {
+          mappings = {
+            i = {
+              ['<esc>'] = require('telescope.actions').close,
+            },
+          },
           theme = 'ivy',
         },
         extensions = {
