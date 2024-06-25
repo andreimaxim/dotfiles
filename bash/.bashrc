@@ -1,4 +1,4 @@
-## 
+##
 # Shell
 
 # History control
@@ -45,25 +45,22 @@ alias gcm='git commit -m'
 alias gcam='git commit -a -m'
 alias gcad='git commit -a --amend'
 
-
-
 ##
 #  Tools init
 
-. "$HOME/.cargo/env" 
+. "$HOME/.cargo/env"
 
-if command -v mise &> /dev/null; then
-  eval "$(mise activate bash)"
+if command -v mise &>/dev/null; then
+	eval "$(mise activate bash)"
 fi
 
-if command -v zoxide &> /dev/null; then
-  eval "$(zoxide init bash)"
+if command -v zoxide &>/dev/null; then
+	eval "$(zoxide init bash)"
 fi
 
-if command -v fzf &> /dev/null; then
-  eval "$(fzf --bash)"
+if command -v fzf &>/dev/null; then
+	eval "$(fzf --bash)"
 fi
-
 
 ##
 # Prompt
