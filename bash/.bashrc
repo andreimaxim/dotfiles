@@ -70,3 +70,5 @@ eval "$(starship init bash)"
 # Editor used by CLI
 export EDITOR="nvim"
 export SUDO_EDITOR="nvim"
+export MISE_ENV_FILE=.env
+
