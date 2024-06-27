@@ -4,7 +4,9 @@ return {
     {
       "<leader><leader>",
       function()
-        require("telescope.builtin").find_files({
+        local builtin = require("telescope.builtin")
+        local themes = require("telescope.themes")
+        builtin.find_files(themes.get_ivy({
           hidden = true,
           no_ignore = true,
           no_ignore_parent = true,
@@ -12,19 +14,27 @@ return {
             "^.git/",
             "^node_modules/",
           },
-        })
+          layout_config = {
+            height = 15,
+          },
+        }))
       end,
       desc = "Find all files",
     },
     {
       "<leader>fw",
       function()
-        require("telescope.builtin").grep_string({
+        local builtin = require("telescope.builtin")
+        local themes = require("telescope.themes")
+        builtin.grep_string(themes.get_ivy({
           additional_args = function()
             return { "--hidden", "--no-ignore", "--glob", "!**/.git/*", "--glob", "!**/node_modules/*" }
           end,
           search = vim.fn.expand("<cword>"),
-        })
+          layout_config = {
+            height = 15,
+          },
+        }))
       end,
       desc = "Find word under cursor",
     },
