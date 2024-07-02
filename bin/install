@@ -1,0 +1,54 @@
+#!/bin/sh
+
+# Update the OS
+sudo apt update -y
+sudo apt upgrade -y
+
+sudo apt install -y \
+	build-essential curl git unzip stow pkg-config autoconf bison clang \
+	libssl-dev libreadline-dev zlib1g-dev libyaml-dev libreadline-dev libncurses5-dev libffi-dev libgdbm-dev libjemalloc2 \
+	apache2-utils tig tree
+
+# Core tools
+sudo apt install -y curl git unzip stow
+
+# Ruby build requirements
+sudo apt install -y autoconf patch build-essential libssl-dev libyaml-dev \
+	libreadline6-dev zlib1g-dev libgmp-dev libncurses5-dev libffi-dev libgdbm6 \
+	libgdbm-dev libdb-dev uuid-dev
+
+# Image manipulation
+sudo apt install -y libvips imagemagick libmagickwand-dev
+
+# Database support
+sudo apt install -y redis-tools \
+	sqlite3 libsqlite3-0 \
+	libmysqlclient-dev \
+	postgresql-client libpq-dev
+
+# Dev tools
+sudo apt install -y apache-utils tig tree
+
+git clone https://github.com/andreimaxim/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+stow bash git neovim zellij
+
+# Prompt
+curl -sS https://starship.rs/install.sh | sh
+
+# Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+source ~/.bashrc
+cargo install ripgrep bat eza zoxide fd-find btop zellij
+
+curl https://mise.run | sh
+source ~/.bashrc
+
+mise use --global ruby
+mise use --global node@lts
+mise use --global go
+
+sudo add-apt-repository -y ppa:neovim-ppa/unstable
+sudo apt install -y neovim
+
+curl https://cli-assets.heroku.com/install.sh | sh
