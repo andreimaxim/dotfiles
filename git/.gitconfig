@@ -13,3 +13,5 @@
 
 [include]
     path = ~/.git-credentials
+[pull]
+	rebase = true
