@@ -35,7 +35,6 @@ alias n='nvim'
 alias g='git'
 alias d='docker'
 alias r='rails'
-alias bat='batcat'
 alias lzg='lazygit'
 alias lzd='lazydocker'
 
@@ -45,30 +44,31 @@ alias gcm='git commit -m'
 alias gcam='git commit -a -m'
 alias gcad='git commit -a --amend'
 
+# Use the Windows version of ssh so it works with 1Password
+alias ssh='ssh.exe'
+alias ssh-add='ssh-add.exe'
 ##
 #  Tools init
 
 . "$HOME/.cargo/env"
 
 if command -v mise &>/dev/null; then
-	eval "$(mise activate bash)"
+  eval "$(mise activate bash)"
 fi
 
 if command -v zoxide &>/dev/null; then
-	eval "$(zoxide init bash)"
+  eval "$(zoxide init bash)"
 fi
 
 if command -v fzf &>/dev/null; then
-	eval "$(fzf --bash)"
+  eval "$(fzf --bash)"
 fi
 
 ##
 # Prompt
-
 eval "$(starship init bash)"
 
 # Editor used by CLI
 export EDITOR="nvim"
 export SUDO_EDITOR="nvim"
 export MISE_ENV_FILE=.env
-
