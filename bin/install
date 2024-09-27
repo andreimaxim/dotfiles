@@ -5,33 +5,39 @@ sudo apt update -y
 sudo apt upgrade -y
 
 sudo apt install -y \
-	build-essential curl git unzip stow pkg-config autoconf bison clang \
-	libssl-dev libreadline-dev zlib1g-dev libyaml-dev libreadline-dev libncurses5-dev libffi-dev libgdbm-dev libjemalloc2 \
-	apache2-utils tig tree
+  build-essential curl git unzip stow pkg-config autoconf bison clang \
+  libssl-dev libreadline-dev zlib1g-dev libyaml-dev libreadline-dev libncurses5-dev libffi-dev libgdbm-dev libjemalloc2 \
+  apache2-utils tig tree
 
 # Core tools
 sudo apt install -y curl git unzip stow
 
 # Ruby build requirements
 sudo apt install -y autoconf patch build-essential libssl-dev libyaml-dev \
-	libreadline6-dev zlib1g-dev libgmp-dev libncurses5-dev libffi-dev libgdbm6 \
-	libgdbm-dev libdb-dev uuid-dev
+  libreadline-dev zlib1g-dev libgmp-dev libncurses5-dev libffi-dev libgdbm6 \
+  libgdbm-dev libdb-dev uuid-dev
+
+# Utils
+sudo apt install -y apache2-utils tig tree libjemalloc2
 
 # Image manipulation
 sudo apt install -y libvips imagemagick libmagickwand-dev
 
 # Database support
-sudo apt install -y redis-tools \
-	sqlite3 libsqlite3-0 \
-	libmysqlclient-dev \
-	postgresql-client libpq-dev
+sudo apt install -y postgres-common
+sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+
+sudo apt install -y redis redis-tools \
+  sqlite3 libsqlite3-0 \
+  libmysqlclient-dev \
+  postgresql libpq-dev
 
 # Dev tools
 sudo apt install -y apache-utils tig tree
 
 git clone https://github.com/andreimaxim/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
-stow bash git neovim zellij
+stow bash git neovim
 
 # Prompt
 curl -sS https://starship.rs/install.sh | sh
