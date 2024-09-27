@@ -1,3 +1,0 @@
-default_layout "compact"
-on_force_close "quit"
-copy_command "clip.exe" 
