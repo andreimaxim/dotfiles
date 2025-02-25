@@ -2,8 +2,8 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     opts = {
-      indent = { enable = false },
-      highlight = { enable = false },
+      indent = { enable = true, disable = { "ruby" } },
+      highlight = { enable = true },
     },
   },
 }
