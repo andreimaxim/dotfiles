@@ -58,3 +58,6 @@ sudo add-apt-repository -y ppa:neovim-ppa/unstable
 sudo apt install -y neovim
 
 curl https://cli-assets.heroku.com/install.sh | sh
+
+# In Windows:
+# winget install --id=equalsraf.win32yank  -e
