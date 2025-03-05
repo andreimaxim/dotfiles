@@ -24,8 +24,9 @@ sudo apt install -y apache2-utils tig tree libjemalloc2
 sudo apt install -y libvips imagemagick libmagickwand-dev
 
 # Database support
-sudo apt install -y postgres-common
+sudo apt install -y postgresql-common
 sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+sudo apt install postgresql-client-17
 
 sudo apt install -y redis redis-tools \
   sqlite3 libsqlite3-0 \
