@@ -14,6 +14,11 @@ source /usr/share/bash-completion/bash_completion
 export PATH="./bin:$HOME/.local/bin:$PATH"
 set +h
 
+# Editor used by CLI
+export EDITOR="nvim"
+export SUDO_EDITOR="nvim"
+export MISE_ENV_FILE=.env
+
 ##
 # Aliases
 
@@ -24,6 +29,7 @@ alias lt='eza --tree --level=2 --long --icons --git'
 alias lta='lt -a'
 alias ff="fzf --preview 'batcat --style=numbers --color=always {}'"
 alias fd="fdfind"
+alias cd="z"
 
 # Directories
 alias ..='cd ..'
@@ -34,7 +40,8 @@ alias ....='cd ../../..'
 alias n='nvim'
 alias g='git'
 alias d='docker'
-alias r='rails'
+alias r='bin/rails'
+alias dr="bundle exec rdbg -n --open=vscode -c -- bin/rails"
 alias lzg='lazygit'
 alias lzd='lazydocker'
 
@@ -52,6 +59,10 @@ alias ssh-add='ssh-add.exe'
 
 . "$HOME/.cargo/env"
 
+##
+# Prompt
+eval "$(starship init bash)"
+
 if command -v mise &>/dev/null; then
   eval "$(mise activate bash)"
 fi
@@ -60,11 +71,7 @@ if command -v zoxide &>/dev/null; then
   eval "$(zoxide init bash)"
 fi
 
-##
-# Prompt
-eval "$(starship init bash)"
-
-# Editor used by CLI
-export EDITOR="nvim"
-export SUDO_EDITOR="nvim"
-export MISE_ENV_FILE=.env
+if command -v fzf &>/dev/null; then
+  source /usr/share/bash-completion/completions/fzf
+  source /usr/share/doc/fzf/examples/key-bindings.bash
+fi
