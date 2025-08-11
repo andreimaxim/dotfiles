@@ -40,10 +40,24 @@ alias ....='cd ../../..'
 alias n='nvim'
 alias g='git'
 alias d='docker'
-alias r='bin/rails'
-alias dr="bundle exec rdbg -n --open=vscode -c -- bin/rails"
 alias lzg='lazygit'
 alias lzd='lazydocker'
+alias opencode="$HOME/.opencode/bin/opencode"
+
+# Rails
+alias r='bin/rails'
+alias rs="bin/rails server"
+alias rc="bin/rails console"
+alias rt="bin/rails test"
+alias rdb="bin/rails dbconsole"
+alias rdm="bin/rails db:migrate"
+alias rdr="bin/rails db:rollback"
+alias rgc="bin/rails g controller"
+alias rgj="bin/rails g job"
+alias rgm="bin/rails g model"
+alias rgs="bin/rails g script"
+alias drs="bundle exec rdbg -n --open=vscode -c -- bin/rails s"
+alias drc="bundle exec rdbg -n --open=vscode -c -- bin/rails c"
 
 # Git
 alias gs='git status'
