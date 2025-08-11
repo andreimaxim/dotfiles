@@ -1,18 +1,23 @@
 [core]
-    sshCommand = ssh.exe
-    symlinks = false
+	sshCommand = ssh.exe
+  symlinks = false
+	excludesfile = /home/andrei/.gitignore
 
 [init]
-    defaultBranch = main
+  defaultBranch = main
 
 [pull]
 	rebase = true
 
 [filter "lfs"]
-    clean = git-lfs clean -- %f
-    smudge = git-lfs smudge -- %f
-    process = git-lfs filter-process
-    required = true
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true
+
+[user]
+	name = Andrei Maxim
+	email = andrei@andreimaxim.ro
 
 [include]
-    path = ~/.git-credentials
+    path = ~/.gitcredentials
