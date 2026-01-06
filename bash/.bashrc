@@ -70,10 +70,6 @@ alias ssh-add='ssh-add.exe'
 #  Tools init
 . "$HOME/.cargo/env"
 
-if command -v zoxide &>/dev/null; then
-  eval "$(zoxide init bash)"
-fi
-
 if command -v fzf &>/dev/null; then
   source /usr/share/bash-completion/completions/fzf
   source /usr/share/doc/fzf/examples/key-bindings.bash
@@ -95,4 +91,8 @@ eval "$(starship init bash)"
 
 if command -v mise &>/dev/null; then
   eval "$(mise activate bash)"
+fi
+
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init bash)"
 fi
