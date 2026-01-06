@@ -1,5 +1,6 @@
 git:
   overrideGpg: true
+  autoFetch: false
 gui:
   nerdFontsVersion: "3"
   theme:
