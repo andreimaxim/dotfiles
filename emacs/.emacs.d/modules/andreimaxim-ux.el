@@ -12,10 +12,10 @@
   :config
   (load-theme 'doom-one t))
 
-(set-face-attribute 'default nil :family "IosevkaSS08" :height 180)
-(set-face-attribute 'fixed-pitch nil :family "IosevkaSS08" :height 180)
-(set-face-attribute 'variable-pitch nil :family "IosevkaAile" :height 180)
-(set-face-attribute 'mode-line nil :family "IosevkaSS08" :height 180)
+(set-face-attribute 'default nil :family "PragmataPro Mono" :height 120)
+(set-face-attribute 'fixed-pitch nil :family "PragmataPro Mono" :height 120)
+(set-face-attribute 'variable-pitch nil :family "PragmataPro Mono" :height 120)
+(set-face-attribute 'mode-line nil :family "PragmataPro Mono" :height 120)
 
 ;; Highlight the current line
 (use-package hl-line
