@@ -62,10 +62,6 @@ alias drc="bundle exec rdbg -n --open=vscode -c -- bin/rails c"
 # Git
 alias gs='git status'
 
-# Use the Windows version of ssh so it works with 1Password
-alias ssh='ssh.exe'
-alias ssh-add='ssh-add.exe'
-
 ##
 #  Tools init
 . "$HOME/.cargo/env"
