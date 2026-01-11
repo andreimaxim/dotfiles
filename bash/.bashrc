@@ -67,8 +67,8 @@ alias gs='git status'
 . "$HOME/.cargo/env"
 
 if command -v fzf &>/dev/null; then
-  source /usr/share/bash-completion/completions/fzf
-  source /usr/share/doc/fzf/examples/key-bindings.bash
+  source /etc/bash_completion.d/fzf
+  source /usr/share/fzf/shell/key-bindings.bash
 fi
 
 # bun
