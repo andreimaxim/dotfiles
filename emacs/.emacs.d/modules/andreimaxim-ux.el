@@ -10,7 +10,7 @@
 (use-package doom-themes
   :ensure t
   :config
-  (load-theme 'doom-one t))
+  (load-theme 'catppuccin t))
 
 (set-face-attribute 'default nil :family "PragmataPro Mono" :height 120)
 (set-face-attribute 'fixed-pitch nil :family "PragmataPro Mono" :height 120)
