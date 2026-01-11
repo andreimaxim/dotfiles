@@ -118,13 +118,5 @@
 ;; No frame title
 (setq frame-title-format nil)
 
-;; WSL clipboard fix
-(when (and (getenv "WAYLAND_DISPLAY") (not (equal (getenv "GDK_BACKEND") "x11")))
-  (setq interprogram-cut-function
-        (lambda (text)
-          (with-temp-buffer
-            (insert text)
-            (call-process-region (point-min) (point-max) "win32yank.exe" nil 0 nil "-i")))))
-
 (provide 'andreimaxim-defaults)
 ;;; andreimaxim-defaults.el ends here
