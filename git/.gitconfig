@@ -17,6 +17,14 @@
 [user]
 	name = Andrei Maxim
 	email = andrei@andreimaxim.ro
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBLsCFcEHXqWkgD65hJ9y4gARfqWT0FYyVOLhgUxl45c
 
-[include]
- 	path = ~/.gitcredentials
+[gpg]
+	format = ssh
+
+[gpg "ssh"]
+	program = /opt/1Password/op-ssh-sign
+
+[commit]
+	gpgsign = true
+
