@@ -19,6 +19,11 @@ return {
             client.server_capabilities.documentHighlightProvider = false
           end,
         },
+
+        -- Use bundled rubocop instead of Mason's standalone version
+        rubocop = {
+          cmd = { "mise", "x", "--", "bundle", "exec", "rubocop", "--lsp" },
+        },
       },
     },
   },
