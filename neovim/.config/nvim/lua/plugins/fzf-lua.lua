@@ -2,7 +2,7 @@ return {
   "ibhagwan/fzf-lua",
   opts = {
     winopts = {
-      split = "belowright 15new", -- bottom split instead of floating
+      split = "botright 15new", -- bottom split spanning full width
       preview = {
         layout = "horizontal",
         horizontal = "right:50%",
