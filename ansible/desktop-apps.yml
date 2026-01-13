@@ -1,0 +1,97 @@
+---
+- name: Desktop apps
+  hosts: localhost
+  become: true
+  vars:
+    rpmfusion_release_rpms:
+      - "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_distribution_major_version }}.noarch.rpm"
+      - "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_distribution_major_version }}.noarch.rpm"
+    gui_dnf_packages:
+      - 1password
+      - 1password-cli
+      - code
+      - google-chrome-stable
+      - wezterm
+      - libreoffice
+      - vlc
+      - discord
+    flatpak_apps:
+      - com.slack.Slack
+      - us.zoom.Zoom
+      - com.spotify.Client
+      - com.getpostman.Postman
+      - md.obsidian.Obsidian
+  tasks:
+    - name: Enable RPM Fusion repositories
+      ansible.builtin.dnf:
+        name: "{{ rpmfusion_release_rpms }}"
+        state: present
+
+    - name: Add 1Password GPG key
+      ansible.builtin.rpm_key:
+        key: https://downloads.1password.com/linux/keys/1password.asc
+        state: present
+
+    - name: Add 1Password repository
+      ansible.builtin.yum_repository:
+        name: 1password
+        description: 1Password Stable Channel
+        baseurl: https://downloads.1password.com/linux/rpm/stable/$basearch
+        enabled: true
+        gpgcheck: true
+        repo_gpgcheck: true
+        gpgkey: https://downloads.1password.com/linux/keys/1password.asc
+
+    - name: Add Microsoft GPG key
+      ansible.builtin.rpm_key:
+        key: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add VS Code repository
+      ansible.builtin.yum_repository:
+        name: vscode
+        description: Visual Studio Code
+        baseurl: https://packages.microsoft.com/yumrepos/vscode
+        enabled: true
+        gpgcheck: true
+        gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+
+    - name: Add Google Chrome GPG key
+      ansible.builtin.rpm_key:
+        key: https://dl.google.com/linux/linux_signing_key.pub
+        state: present
+
+    - name: Add Google Chrome repository
+      ansible.builtin.yum_repository:
+        name: google-chrome
+        description: Google Chrome
+        baseurl: https://dl.google.com/linux/chrome/rpm/stable/$basearch
+        enabled: true
+        gpgcheck: true
+        gpgkey: https://dl.google.com/linux/linux_signing_key.pub
+
+    - name: Enable WezTerm COPR
+      community.general.copr:
+        name: wezfurlong/wezterm-nightly
+        state: enabled
+
+    - name: Install GUI packages
+      ansible.builtin.dnf:
+        name: "{{ gui_dnf_packages }}"
+        state: present
+
+    - name: Install Flatpak
+      ansible.builtin.dnf:
+        name: flatpak
+        state: present
+
+    - name: Enable Flathub remote
+      community.general.flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+
+    - name: Install Flatpak apps
+      community.general.flatpak:
+        name: "{{ flatpak_apps }}"
+        state: present

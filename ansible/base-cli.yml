@@ -1,0 +1,6 @@
+---
+- name: Terminal apps
+  import_playbook: terminal-apps.yml
+
+- name: Terminal config
+  import_playbook: terminal-config.yml
