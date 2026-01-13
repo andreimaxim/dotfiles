@@ -51,6 +51,13 @@
   ("\\.jbuilder\\'" . ruby-mode)
   :config (setq ruby-align-to-stmt-keywords t))
 
+(use-package eglot
+  :ensure nil
+  :hook (ruby-mode . eglot-ensure)
+  :config
+  (add-to-list 'eglot-server-programs
+               '((ruby-mode ruby-ts-mode) "ruby-lsp")))
+
 (use-package robe
   :ensure t
   :hook (ruby-mode . robe-mode))
