@@ -17,6 +17,12 @@
   :config
   (exec-path-from-shell-initialize))
 
+(use-package mise
+  :ensure t
+  :hook ((ruby-mode ruby-ts-mode js-mode js-ts-mode
+          typescript-mode typescript-ts-mode go-mode go-ts-mode)
+         . mise-mode))
+
 (use-package ansi-color
   :ensure nil
   :hook (compilation-filter . ansi-color-compilation-filter))

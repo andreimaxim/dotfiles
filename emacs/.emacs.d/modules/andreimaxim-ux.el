@@ -44,7 +44,12 @@
   :hook (after-init . doom-modeline-mode)
   :custom
   (doom-modeline-buffer-file-name-style 'relative-to-project)
-  (doom-modeline-icon nil))
+  (doom-modeline-icon nil)
+  :config
+  (setq doom-modeline-env-ruby-command
+        (lambda () '("mise" "exec" "--" "ruby" "--version")))
+  (setq doom-modeline-env-go-command
+        (lambda () '("mise" "exec" "--" "go" "version"))))
 
 ;;; UX improvements
 
