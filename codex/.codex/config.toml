@@ -1,5 +1,5 @@
 model = "gpt-5.2-codex"
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 web_search_request = true
 
 [sandbox_workspace_write]
