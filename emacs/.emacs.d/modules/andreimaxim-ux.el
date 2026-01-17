@@ -13,10 +13,11 @@
   (setq catppuccin-flavor 'mocha)
   (load-theme 'catppuccin t))
 
-(set-face-attribute 'default nil :family "PragmataPro Mono" :height 120)
-(set-face-attribute 'fixed-pitch nil :family "PragmataPro Mono" :height 120)
-(set-face-attribute 'variable-pitch nil :family "PragmataPro Mono" :height 120)
-(set-face-attribute 'mode-line nil :family "PragmataPro Mono" :height 120)
+(set-face-attribute 'default nil :family "PragmataPro Mono" :height 105)
+(set-face-attribute 'fixed-pitch nil :family "PragmataPro Mono" :height 105)
+(set-face-attribute 'variable-pitch nil :family "PragmataPro Mono" :height 105)
+(set-face-attribute 'mode-line nil :family "PragmataPro Mono" :height 105)
+(setq-default line-spacing 6)
 
 ;; Highlight the current line
 (use-package hl-line
