@@ -45,11 +45,25 @@
          ("C-c f" . magit-file-dispatch))
   :custom (magit-define-global-key-bindings 'recommended))
 
-(use-package tree-sitter
-  :ensure t
-  :config (use-package tree-sitter-langs
-            :ensure t)
-  :hook ((css-mode html-mode javascript-mode json-mode ruby-mode typescrypt-mode) . tree-sitter-hl-mode))
+(use-package treesit
+  :ensure nil
+  :config
+  (setq treesit-font-lock-level 4)
+  (setq treesit-language-source-alist
+        '((css "https://github.com/tree-sitter/tree-sitter-css")
+          (html "https://github.com/tree-sitter/tree-sitter-html")
+          (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+          (json "https://github.com/tree-sitter/tree-sitter-json")
+          (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
+          (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")))
+  (dolist (remap '((css-mode . css-ts-mode)
+                   (html-mode . html-ts-mode)
+                   (javascript-mode . js-ts-mode)
+                   (js-mode . js-ts-mode)
+                   (json-mode . json-ts-mode)
+                   (ruby-mode . ruby-ts-mode)
+                   (typescript-mode . typescript-ts-mode)))
+    (add-to-list 'major-mode-remap-alist remap)))
 
 (use-package ruby-mode
   :ensure nil
