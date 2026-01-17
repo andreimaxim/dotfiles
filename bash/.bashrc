@@ -43,6 +43,11 @@ alias lzd='lazydocker'
 alias opencode="$HOME/.opencode/bin/opencode"
 alias opencode="$HOME/.amp/bin/amp"
 
+# Emacs
+alias em="emacsclient -c -n"
+alias et="emacsclient -t"
+alias emacs="emacsclient -c -n -a ''"
+
 # Rails
 alias r='bin/rails'
 alias rs="bin/rails server"
