@@ -7,10 +7,11 @@
 ;;; Code:
 
 ;;; UI tweaks
-(use-package doom-themes
+(use-package catppuccin-theme
   :ensure t
   :config
-  (load-theme 'doom-one t))
+  (setq catppuccin-flavor 'mocha)
+  (load-theme 'catppuccin t))
 
 (set-face-attribute 'default nil :family "PragmataPro Mono" :height 120)
 (set-face-attribute 'fixed-pitch nil :family "PragmataPro Mono" :height 120)
