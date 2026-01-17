@@ -37,12 +37,11 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 
 # Tools
-alias n='nvim'
-alias g='git'
 alias d='docker'
 alias lzg='lazygit'
 alias lzd='lazydocker'
 alias opencode="$HOME/.opencode/bin/opencode"
+alias opencode="$HOME/.amp/bin/amp"
 
 # Rails
 alias r='bin/rails'
@@ -74,12 +73,6 @@ fi
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
-
-# opencode
-export PATH=/home/andrei/.opencode/bin:$PATH
-
-# Amp CLI
-export PATH="/home/andrei/.amp/bin:$PATH"
 
 ##
 # Prompt
