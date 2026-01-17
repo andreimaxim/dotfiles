@@ -7,17 +7,11 @@
 ;;; Code:
 
 ;;; UI tweaks
-
-;; Load theme immediately (not deferred) to prevent flash of default theme.
-;; The theme package should be loaded as early as possible.
-(use-package catppuccin-theme
+(use-package doom-themes
   :ensure t
-  :demand t  ; Load immediately, don't defer
   :config
-  (load-theme 'catppuccin t))
+  (load-theme 'doom-one t))
 
-;; Fonts are set in early-init.el via default-frame-alist for the initial frame.
-;; These calls ensure fonts are correct for subsequent frames and face variants.
 (set-face-attribute 'default nil :family "PragmataPro Mono" :height 120)
 (set-face-attribute 'fixed-pitch nil :family "PragmataPro Mono" :height 120)
 (set-face-attribute 'variable-pitch nil :family "PragmataPro Mono" :height 120)

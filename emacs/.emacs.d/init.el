@@ -26,8 +26,8 @@
 
 (add-to-list 'load-path (expand-file-name "modules" user-emacs-directory))
 
-(require 'andreimaxim-ux)
 (require 'andreimaxim-defaults)
+(require 'andreimaxim-ux)
 (require 'andreimaxim-prog)
 (require 'andreimaxim-ruby-align)
 (require 'andreimaxim-org)
