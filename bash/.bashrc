@@ -14,9 +14,6 @@ source /usr/share/bash-completion/bash_completion
 export PATH="./bin:$HOME/.local/bin:$PATH"
 set +h
 
-# Editor used by CLI
-export EDITOR="nvim"
-export SUDO_EDITOR="nvim"
 export MISE_ENV_FILE=.env
 
 ##
