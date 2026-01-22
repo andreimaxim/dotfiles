@@ -38,7 +38,7 @@ alias d='docker'
 alias lzg='lazygit'
 alias lzd='lazydocker'
 alias opencode="$HOME/.opencode/bin/opencode"
-alias opencode="$HOME/.amp/bin/amp"
+alias amp="$HOME/.amp/bin/amp"
 
 # Emacs
 alias em="emacsclient -c -n"
