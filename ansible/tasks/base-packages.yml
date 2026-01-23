@@ -1,4 +1,21 @@
 ---
+- name: Add 1Password GPG key
+  become: true
+  ansible.builtin.rpm_key:
+    key: https://downloads.1password.com/linux/keys/1password.asc
+    state: present
+
+- name: Add 1Password repository
+  become: true
+  ansible.builtin.yum_repository:
+    name: 1password
+    description: 1Password Stable Channel
+    baseurl: https://downloads.1password.com/linux/rpm/stable/$basearch
+    gpgcheck: true
+    gpgkey: https://downloads.1password.com/linux/keys/1password.asc
+    repo_gpgcheck: true
+    enabled: true
+
 - name: Install base packages via rpm-ostree
   become: true
   community.general.rpm_ostree_pkg:
