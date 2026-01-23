@@ -11,9 +11,9 @@
   when: not rustup_check.stat.exists
 
 - name: Install cargo packages
-  shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install {{ item }}"
+  shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install {{ item.pkg }}"
   args:
-    creates: "{{ ansible_env.HOME }}/.cargo/bin/{{ item | regex_replace('-.*$', '') }}"
+    creates: "{{ ansible_env.HOME }}/.cargo/bin/{{ item.bin }}"
   loop: "{{ cargo_packages }}"
   environment:
     PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"

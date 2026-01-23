@@ -5,19 +5,19 @@
     dotfiles_repo: "https://github.com/andreimaxim/dotfiles.git"
     dotfiles_path: "{{ ansible_env.HOME }}/.dotfiles"
     cargo_packages:
-      - eza
-      - bat
-      - fd-find
-      - ripgrep
-      - starship
-      - zoxide
-      - git-delta
-      - btop
-      - zellij
-      - xh
-      - du-dust
-      - sd
-      - procs
+      - { pkg: eza, bin: eza }
+      - { pkg: bat, bin: bat }
+      - { pkg: fd-find, bin: fd }
+      - { pkg: ripgrep, bin: rg }
+      - { pkg: starship, bin: starship }
+      - { pkg: zoxide, bin: zoxide }
+      - { pkg: git-delta, bin: delta }
+      - { pkg: btop, bin: btop }
+      - { pkg: zellij, bin: zellij }
+      - { pkg: xh, bin: xh }
+      - { pkg: du-dust, bin: dust }
+      - { pkg: sd, bin: sd }
+      - { pkg: procs, bin: procs }
     stow_packages:
       - bash
       - git
