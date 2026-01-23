@@ -53,10 +53,10 @@
   when: not bun_check.stat.exists
 
 - name: Check if heroku is installed
-  shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm list -g heroku"
+  shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm list -g --depth=0 heroku"
   register: heroku_check
-  ignore_errors: yes
   changed_when: false
+  failed_when: false
 
 - name: Install Heroku CLI via npm
   shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm install -g heroku"
