@@ -1,4 +1,17 @@
 ---
+- name: Add 1Password repository
+  become: true
+  copy:
+    dest: /etc/yum.repos.d/1password.repo
+    content: |
+      [1password]
+      name=1Password Stable Channel
+      baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
+      enabled=1
+      gpgcheck=1
+      repo_gpgcheck=1
+      gpgkey=https://downloads.1password.com/linux/keys/1password.asc
+
 - name: Install base packages via rpm-ostree
   become: true
   community.general.rpm_ostree_pkg:
@@ -45,6 +58,9 @@
       - mysql-devel
       # Container
       - podman-docker
+      # 1Password
+      - 1password
+      - 1password-cli
     state: present
   register: rpm_ostree_result
 

@@ -32,7 +32,6 @@
       - emacs
 
   tasks:
-    - include_tasks: tasks/base-packages.yml
     - include_tasks: tasks/rust-setup.yml
     - include_tasks: tasks/runtimes.yml
     - include_tasks: tasks/cli-tools.yml
