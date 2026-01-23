@@ -44,6 +44,8 @@
       - autoconf
       - bison
       - clang
+      - perl
+      - perl-FindBin
       # Image processing
       - vips
       - vips-devel
