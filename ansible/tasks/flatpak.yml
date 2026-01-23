@@ -1,0 +1,15 @@
+---
+- name: Add Flathub remote
+  become: true
+  community.general.flatpak_remote:
+    name: flathub
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    state: present
+    method: system
+
+# Add Flatpak apps below as needed, e.g.:
+# - name: Install VS Code
+#   community.general.flatpak:
+#     name: com.visualstudio.code
+#     state: present
+#     method: system

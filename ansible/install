@@ -1,0 +1,45 @@
+#!/bin/bash
+set -euo pipefail
+
+REPO_URL="https://github.com/andreimaxim/dotfiles.git"
+DOTFILES_PATH="$HOME/.dotfiles"
+
+echo "=== Fedora Kinoite Bootstrap ==="
+echo ""
+
+# Check if running on Fedora with rpm-ostree
+if ! command -v rpm-ostree &> /dev/null; then
+    echo "Error: rpm-ostree not found. This script is for Fedora Kinoite/Silverblue."
+    exit 1
+fi
+
+# Step 1: Install git and ansible via rpm-ostree
+echo "Step 1: Installing git and ansible via rpm-ostree..."
+if ! command -v git &> /dev/null || ! command -v ansible-playbook &> /dev/null; then
+    sudo rpm-ostree install --apply-live git ansible
+    echo "Packages installed with --apply-live (no reboot needed for this step)"
+else
+    echo "git and ansible already available"
+fi
+
+# Step 2: Clone dotfiles
+echo ""
+echo "Step 2: Cloning dotfiles repository..."
+if [ -d "$DOTFILES_PATH" ]; then
+    echo "Dotfiles already exist at $DOTFILES_PATH"
+else
+    git clone "$REPO_URL" "$DOTFILES_PATH"
+    echo "Cloned to $DOTFILES_PATH"
+fi
+
+# Step 3: Run ansible playbook
+echo ""
+echo "Step 3: Running Ansible playbook..."
+cd "$DOTFILES_PATH/ansible"
+ansible-playbook local.yml
+
+echo ""
+echo "=== Bootstrap complete ==="
+echo ""
+echo "Note: Some rpm-ostree packages require a reboot to take effect."
+echo "Run 'systemctl reboot' when ready."

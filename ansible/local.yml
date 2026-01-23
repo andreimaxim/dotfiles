@@ -1,0 +1,41 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    dotfiles_repo: "https://github.com/andreimaxim/dotfiles.git"
+    dotfiles_path: "{{ ansible_env.HOME }}/.dotfiles"
+    cargo_packages:
+      - eza
+      - bat
+      - fd-find
+      - ripgrep
+      - starship
+      - zoxide
+      - git-delta
+      - btop
+      - zellij
+      - xh
+      - du-dust
+      - sd
+      - procs
+    stow_packages:
+      - bash
+      - git
+      - vim
+      - delta
+      - eza
+      - lazygit
+      - bat
+      - tig
+      - claude
+      - opencode
+      - emacs
+
+  tasks:
+    - include_tasks: tasks/base-packages.yml
+    - include_tasks: tasks/rust-setup.yml
+    - include_tasks: tasks/runtimes.yml
+    - include_tasks: tasks/cli-tools.yml
+    - include_tasks: tasks/ai-tools.yml
+    - include_tasks: tasks/dotfiles.yml
+    - include_tasks: tasks/flatpak.yml

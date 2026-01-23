@@ -1,0 +1,38 @@
+---
+- name: Check if Claude Code is installed
+  shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm list -g @anthropic-ai/claude-code"
+  register: claude_check
+  ignore_errors: yes
+  changed_when: false
+
+- name: Install Claude Code
+  shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm install -g @anthropic-ai/claude-code"
+  when: claude_check.rc != 0
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+- name: Check if OpenCode is installed
+  stat:
+    path: "{{ ansible_env.HOME }}/.local/bin/opencode"
+  register: opencode_check
+
+- name: Install OpenCode
+  shell: curl -fsSL https://opencode.ai/install | bash
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/opencode"
+  when: not opencode_check.stat.exists
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+- name: Check if Amp is installed
+  stat:
+    path: "{{ ansible_env.HOME }}/.local/bin/amp"
+  register: amp_check
+
+- name: Install Amp
+  shell: curl -fsSL https://ampcode.com/install.sh | bash
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/amp"
+  when: not amp_check.stat.exists
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"

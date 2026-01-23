@@ -1,0 +1,19 @@
+---
+- name: Check if rustup is installed
+  stat:
+    path: "{{ ansible_env.HOME }}/.cargo/bin/rustup"
+  register: rustup_check
+
+- name: Install rustup
+  shell: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  args:
+    creates: "{{ ansible_env.HOME }}/.cargo/bin/rustup"
+  when: not rustup_check.stat.exists
+
+- name: Install cargo packages
+  shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install {{ item }}"
+  args:
+    creates: "{{ ansible_env.HOME }}/.cargo/bin/{{ item | regex_replace('-.*$', '') }}"
+  loop: "{{ cargo_packages }}"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"

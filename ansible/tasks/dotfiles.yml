@@ -1,0 +1,21 @@
+---
+- name: Check if dotfiles repo exists
+  stat:
+    path: "{{ dotfiles_path }}"
+  register: dotfiles_check
+
+- name: Clone dotfiles repository
+  git:
+    repo: "{{ dotfiles_repo }}"
+    dest: "{{ dotfiles_path }}"
+    accept_hostkey: yes
+  when: not dotfiles_check.stat.exists
+
+- name: Stow dotfiles packages
+  shell: "stow {{ item }}"
+  args:
+    chdir: "{{ dotfiles_path }}"
+  loop: "{{ stow_packages }}"
+  register: stow_result
+  changed_when: stow_result.rc == 0
+  failed_when: stow_result.rc != 0 and 'already points' not in stow_result.stderr

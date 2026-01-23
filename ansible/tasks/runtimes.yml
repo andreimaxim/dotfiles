@@ -1,0 +1,39 @@
+---
+- name: Check if mise is installed
+  stat:
+    path: "{{ ansible_env.HOME }}/.local/bin/mise"
+  register: mise_check
+
+- name: Install mise
+  shell: curl https://mise.run | sh
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/mise"
+  when: not mise_check.stat.exists
+
+- name: Install Ruby via mise
+  shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global ruby@latest"
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/ruby"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+- name: Install Node via mise
+  shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global node@lts"
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/node"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+- name: Install Go via mise
+  shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global go@latest"
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/go"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+- name: Install Java via mise
+  shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global java@lts"
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/java"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
