@@ -11,6 +11,11 @@
     accept_hostkey: yes
   when: not dotfiles_check.stat.exists
 
+- name: Remove default .bashrc before stow
+  file:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    state: absent
+
 - name: Stow dotfiles packages
   shell: "stow {{ item }}"
   args:
