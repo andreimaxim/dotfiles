@@ -7,9 +7,14 @@
     state: present
     method: system
 
-# Add Flatpak apps below as needed, e.g.:
-# - name: Install VS Code
-#   community.general.flatpak:
-#     name: com.visualstudio.code
-#     state: present
-#     method: system
+- name: Install Flatpak apps
+  become: true
+  community.general.flatpak:
+    name:
+      - com.google.Chrome
+      - com.visualstudio.code
+      - com.slack.Slack
+      - us.zoom.Zoom
+      - com.spotify.Client
+    state: present
+    method: system
