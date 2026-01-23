@@ -1,22 +1,4 @@
 ---
-- name: Download 1Password GPG key
-  become: true
-  ansible.builtin.get_url:
-    url: https://downloads.1password.com/linux/keys/1password.asc
-    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-1password
-    mode: "0644"
-
-- name: Add 1Password repository
-  become: true
-  ansible.builtin.yum_repository:
-    name: 1password
-    description: 1Password Stable Channel
-    baseurl: https://downloads.1password.com/linux/rpm/stable/$basearch
-    gpgcheck: true
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-1password
-    repo_gpgcheck: true
-    enabled: true
-
 - name: Install base packages via rpm-ostree
   become: true
   community.general.rpm_ostree_pkg:
@@ -34,9 +16,6 @@
       - jq
       - gh
       - ShellCheck
-      # 1Password
-      - 1password-cli
-      - 1password
       # Build tools
       - gcc
       - gcc-c++
