@@ -6,6 +6,7 @@
     dnf_packages:
       - curl
       - git
+      - git-lfs
       - unzip
       - stow
       - fzf
@@ -15,6 +16,7 @@
       - gh
       - rsync
       - neovim
+      - emacs
       - podman
       - podman-tui
     copr_packages:
@@ -47,10 +49,16 @@
         state: enabled
       loop:
         - dejan/lazygit
+        - atim/lazydocker
 
     - name: Install dnf packages
       ansible.builtin.dnf:
         name: "{{ dnf_packages + copr_packages }}"
+        state: present
+
+    - name: Install lazydocker
+      ansible.builtin.dnf:
+        name: lazydocker
         state: present
 
     - name: Install PGDG repository
@@ -134,4 +142,34 @@
       environment:
         PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
       changed_when: false
+      become: false
+
+    - name: Install bun
+      ansible.builtin.shell: |
+        curl -fsSL https://bun.sh/install | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.bun/bin/bun"
+      become: false
+
+    - name: Install opencode
+      ansible.builtin.shell: |
+        curl -fsSL https://opencode.ai/install | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.opencode/bin/opencode"
+      become: false
+
+    - name: Install amp
+      ansible.builtin.shell: |
+        curl -fsSL https://ampcode.com/install.sh | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.amp/bin/amp"
+      become: false
+
+    - name: Install Claude Code
+      ansible.builtin.shell: |
+        npm install -g @anthropic-ai/claude-code
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/claude"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/share/mise/shims:{{ ansible_env.PATH }}"
       become: false

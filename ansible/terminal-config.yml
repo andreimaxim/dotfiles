@@ -7,11 +7,16 @@
     stow_packages:
       - bash
       - git
-      - neovim
       - wezterm
-      - zellij
       - lazygit
       - tig
+      - bat
+      - delta
+      - eza
+      - vim
+      - emacs
+      - opencode
+      - claude
   tasks:
     - name: Clone dotfiles repository
       ansible.builtin.git:

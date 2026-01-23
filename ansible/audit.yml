@@ -1,0 +1,213 @@
+---
+- name: Audit installed tools vs Ansible-managed
+  hosts: localhost
+  become: false
+  vars:
+    audit_file: "{{ ansible_env.HOME }}/.dotfiles/AUDIT.md"
+    managed_dnf_packages:
+      - curl
+      - git
+      - git-lfs
+      - unzip
+      - stow
+      - fzf
+      - httpd-tools
+      - tree
+      - tig
+      - gh
+      - rsync
+      - neovim
+      - emacs
+      - podman
+      - podman-tui
+      - lazygit
+      - lazydocker
+    managed_cargo_packages:
+      - bat
+      - btop
+      - eza
+      - fd-find
+      - ripgrep
+      - zoxide
+      - zellij
+      - starship
+    managed_mise_tools:
+      - ruby
+      - node
+      - go
+      - java
+    managed_flatpak_apps:
+      - com.google.Chrome
+      - md.obsidian.Obsidian
+      - com.slack.Slack
+      - us.zoom.Zoom
+      - com.spotify.Client
+      - com.discordapp.Discord
+      - org.signal.Signal
+      - com.getpostman.Postman
+      - rest.insomnia.Insomnia
+      - com.usebruno.Bruno
+      - com.raggesilver.BlackBox
+      - io.podman_desktop.PodmanDesktop
+      - com.mattjakeman.ExtensionManager
+      - org.kde.kleopatra
+      - org.localsend.localsend_app
+      - com.calibre_ebook.calibre
+      - com.github.johnfactotum.Foliate
+      - org.libretro.RetroArch
+      - org.videolan.VLC
+      - io.github.seadve.Kooha
+    managed_custom_binaries:
+      - mise
+      - bun
+      - opencode
+      - amp
+      - claude
+  tasks:
+    - name: Get installed dnf packages
+      ansible.builtin.shell: |
+        dnf list installed 2>/dev/null | awk 'NR>1 {print $1}' | sed 's/\..*//' | sort -u
+      register: installed_dnf
+      changed_when: false
+
+    - name: Get cargo binaries
+      ansible.builtin.shell: |
+        ls -1 {{ ansible_env.HOME }}/.cargo/bin 2>/dev/null || echo ""
+      register: installed_cargo
+      changed_when: false
+
+    - name: Get mise runtimes
+      ansible.builtin.shell: |
+        {{ ansible_env.HOME }}/.local/bin/mise list 2>/dev/null | awk '{print $1}' | sort -u || echo ""
+      register: installed_mise
+      changed_when: false
+
+    - name: Get flatpak apps
+      ansible.builtin.shell: |
+        flatpak list --app --columns=application 2>/dev/null || echo ""
+      register: installed_flatpak
+      changed_when: false
+
+    - name: Get custom binaries in ~/.local/bin
+      ansible.builtin.shell: |
+        ls -1 {{ ansible_env.HOME }}/.local/bin 2>/dev/null || echo ""
+      register: local_bin
+      changed_when: false
+
+    - name: Get custom binaries in ~/.bun/bin
+      ansible.builtin.shell: |
+        ls -1 {{ ansible_env.HOME }}/.bun/bin 2>/dev/null || echo ""
+      register: bun_bin
+      changed_when: false
+
+    - name: Get custom binaries in ~/.opencode/bin
+      ansible.builtin.shell: |
+        ls -1 {{ ansible_env.HOME }}/.opencode/bin 2>/dev/null || echo ""
+      register: opencode_bin
+      changed_when: false
+
+    - name: Get custom binaries in ~/.amp/bin
+      ansible.builtin.shell: |
+        ls -1 {{ ansible_env.HOME }}/.amp/bin 2>/dev/null || echo ""
+      register: amp_bin
+      changed_when: false
+
+    - name: Get stow packages (directories in dotfiles)
+      ansible.builtin.shell: |
+        find {{ ansible_env.HOME }}/.dotfiles -maxdepth 1 -type d ! -name '.*' ! -name 'ansible' -printf '%f\n' | sort
+      register: stow_dirs
+      changed_when: false
+
+    - name: Generate audit report
+      ansible.builtin.copy:
+        dest: "{{ audit_file }}"
+        mode: "0644"
+        content: |
+          # Dotfiles Audit Report
+
+          Generated: {{ ansible_date_time.iso8601 }}
+
+          ## DNF Packages
+
+          ### Managed by Ansible
+          {% for pkg in managed_dnf_packages | sort %}
+          - {{ pkg }}{% if pkg in installed_dnf.stdout_lines %} ✓{% else %} ✗ (not installed){% endif %}
+
+          {% endfor %}
+
+          ### Installed but not managed
+          ```
+          {{ installed_dnf.stdout_lines | difference(managed_dnf_packages) | join('\n') }}
+          ```
+
+          ## Cargo Packages
+
+          ### Managed by Ansible
+          {% for pkg in managed_cargo_packages | sort %}
+          - {{ pkg }}{% if pkg in installed_cargo.stdout_lines %} ✓{% else %} ✗ (not installed){% endif %}
+
+          {% endfor %}
+
+          ### Installed cargo binaries
+          ```
+          {{ installed_cargo.stdout }}
+          ```
+
+          ## Mise Runtimes
+
+          ### Managed by Ansible
+          {% for tool in managed_mise_tools | sort %}
+          - {{ tool }}{% if tool in installed_mise.stdout %} ✓{% else %} ✗ (not installed){% endif %}
+
+          {% endfor %}
+
+          ### Installed runtimes
+          ```
+          {{ installed_mise.stdout }}
+          ```
+
+          ## Flatpak Apps
+
+          ### Managed by Ansible
+          {% for app in managed_flatpak_apps | sort %}
+          - {{ app }}{% if app in installed_flatpak.stdout_lines %} ✓{% else %} ✗ (not installed){% endif %}
+
+          {% endfor %}
+
+          ### Installed but not managed
+          ```
+          {{ installed_flatpak.stdout_lines | difference(managed_flatpak_apps) | join('\n') }}
+          ```
+
+          ## Custom Binaries
+
+          ### ~/.local/bin
+          ```
+          {{ local_bin.stdout }}
+          ```
+
+          ### ~/.bun/bin
+          ```
+          {{ bun_bin.stdout }}
+          ```
+
+          ### ~/.opencode/bin
+          ```
+          {{ opencode_bin.stdout }}
+          ```
+
+          ### ~/.amp/bin
+          ```
+          {{ amp_bin.stdout }}
+          ```
+
+          ## Stow Packages
+
+          ### Available directories
+          ```
+          {{ stow_dirs.stdout }}
+          ```
+
+    - name: Display audit file location
+      ansible.builtin.debug:
+        msg: "Audit report written to {{ audit_file }}"

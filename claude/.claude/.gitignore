@@ -1,0 +1,29 @@
+# Credentials and secrets
+.credentials.json
+
+# Caches
+cache/
+stats-cache.json
+
+# Session state
+history.jsonl
+session-env/
+shell-snapshots/
+todos/
+plans/
+debug/
+downloads/
+file-history/
+
+# IDE integration state
+ide/
+
+# Analytics and telemetry
+statsig/
+telemetry/
+
+# Projects (contains local paths)
+projects/
+
+# Plugins cache (keep installed plugins list if needed)
+plugins/
