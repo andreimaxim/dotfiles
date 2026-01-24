@@ -1,13 +1,14 @@
 ---
 - name: Check if Claude Code is installed
-  shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm list -g @anthropic-ai/claude-code"
+  stat:
+    path: "{{ ansible_env.HOME }}/.local/bin/claude"
   register: claude_check
-  ignore_errors: yes
-  changed_when: false
 
 - name: Install Claude Code
-  shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm install -g @anthropic-ai/claude-code"
-  when: claude_check.rc != 0
+  shell: curl -fsSL https://claude.ai/install.sh | bash
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/claude"
+  when: not claude_check.stat.exists
   environment:
     PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
 
