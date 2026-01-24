@@ -22,7 +22,7 @@ There are two main steps:
 Installing the initial base backages:
 
 ```bash
-ansible-playbook -K base-config.yml
+ansible-playbook -K ansible/playbooks/packages.yml
 ```
 
 A reboot is required.
@@ -30,5 +30,5 @@ A reboot is required.
 Then the rest of the local config, apps and packages:
 
 ```bash
-ansible-playbook -K config.yml
+ansible-playbook -K ansible/playbooks/tools.yml
 ```

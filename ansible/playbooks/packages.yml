@@ -1,0 +1,135 @@
+---
+- name: Install packages (reboot required after)
+  hosts: localhost
+  connection: local
+
+  tasks:
+    # ===================
+    # Core packages
+    # ===================
+    - name: Install core packages
+      become: true
+      community.general.rpm_ostree_pkg:
+        name:
+          - git
+          - stow
+          - vim-enhanced
+          - tree
+          - unzip
+          - bash-completion
+        state: present
+
+    # ===================
+    # Build tools
+    # ===================
+    - name: Install build tools
+      become: true
+      community.general.rpm_ostree_pkg:
+        name:
+          - gcc
+          - gcc-c++
+          - make
+          - clang
+          - autoconf
+          - bison
+          - pkg-config
+        state: present
+
+    # ===================
+    # Dev libraries
+    # ===================
+    - name: Install development libraries
+      become: true
+      community.general.rpm_ostree_pkg:
+        name:
+          - openssl-devel
+          - readline-devel
+          - zlib-devel
+          - libyaml-devel
+          - libffi-devel
+          - gdbm-devel
+          - ncurses-devel
+          - vips
+          - vips-devel
+          - ImageMagick
+          - ImageMagick-devel
+          - postgresql
+          - libpq-devel
+          - redis
+          - sqlite
+          - sqlite-devel
+          - mysql-devel
+        state: present
+
+    # ===================
+    # CLI tools
+    # ===================
+    - name: Install CLI tools
+      become: true
+      community.general.rpm_ostree_pkg:
+        name:
+          - git-lfs
+          - tig
+          - fzf
+          - jq
+          - gh
+          - ShellCheck
+        state: present
+
+    # ===================
+    # Containers
+    # ===================
+    - name: Install podman-docker
+      become: true
+      community.general.rpm_ostree_pkg:
+        name: podman-docker
+        state: present
+
+    # ===================
+    # 1Password
+    # ===================
+    - name: Add 1Password repository
+      become: true
+      copy:
+        dest: /etc/yum.repos.d/1password.repo
+        content: |
+          [1password]
+          name=1Password Stable Channel
+          baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
+          enabled=1
+          gpgcheck=1
+          repo_gpgcheck=1
+          gpgkey=https://downloads.1password.com/linux/keys/1password.asc
+
+    - name: Install 1password
+      become: true
+      community.general.rpm_ostree_pkg:
+        name:
+          - 1password
+          - 1password-cli
+        state: present
+
+    # ===================
+    # VS Code
+    # ===================
+    - name: Add Microsoft VSCode repository
+      become: true
+      copy:
+        dest: /etc/yum.repos.d/vscode.repo
+        content: |
+          [code]
+          name=Visual Studio Code
+          baseurl=https://packages.microsoft.com/yumrepos/vscode
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+
+    - name: Install code
+      become: true
+      community.general.rpm_ostree_pkg:
+        name: code
+        state: present
+
+    - name: Notify about reboot
+      debug:
+        msg: "Packages installed. Please reboot, then run: ansible-playbook playbooks/tools.yml"

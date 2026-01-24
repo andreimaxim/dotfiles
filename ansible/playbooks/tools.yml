@@ -1,0 +1,395 @@
+---
+- name: Install tools and configure dotfiles
+  hosts: localhost
+  connection: local
+  vars:
+    dotfiles_repo: "https://github.com/andreimaxim/dotfiles.git"
+    dotfiles_path: "{{ ansible_env.HOME }}/.dotfiles"
+
+  tasks:
+    # ===================
+    # Dotfiles
+    # ===================
+    - name: Check if dotfiles repo exists
+      stat:
+        path: "{{ dotfiles_path }}"
+      register: dotfiles_check
+
+    - name: Clone dotfiles repository
+      git:
+        repo: "{{ dotfiles_repo }}"
+        dest: "{{ dotfiles_path }}"
+        accept_hostkey: yes
+      when: not dotfiles_check.stat.exists
+
+    # ===================
+    # Core configs
+    # ===================
+    - name: Check if .gitconfig is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.gitconfig"
+      register: gitconfig_stat
+
+    - name: Stow git
+      command: stow git
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not gitconfig_stat.stat.exists or not gitconfig_stat.stat.islnk
+
+    - name: Check if .bashrc is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+      register: bashrc_stat
+
+    - name: Remove default .bashrc before stow
+      file:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        state: absent
+      when: bashrc_stat.stat.exists and not bashrc_stat.stat.islnk
+
+    - name: Stow bash
+      command: stow bash
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not bashrc_stat.stat.islnk | default(false)
+
+    - name: Check if .vimrc is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.vimrc"
+      register: vimrc_stat
+
+    - name: Stow vim
+      command: stow vim
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not vimrc_stat.stat.exists or not vimrc_stat.stat.islnk
+
+    # ===================
+    # Rust
+    # ===================
+    - name: Check if rustup is installed
+      stat:
+        path: "{{ ansible_env.HOME }}/.cargo/bin/rustup"
+      register: rustup_check
+
+    - name: Install rustup
+      shell: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/rustup"
+      when: not rustup_check.stat.exists
+
+    # Cargo packages
+    - name: Install bat
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install bat"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/bat"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install git-delta
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install git-delta"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/delta"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install eza
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install eza"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/eza"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install fd-find
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install fd-find"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/fd"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install ripgrep
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install ripgrep"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/rg"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install starship
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install starship"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/starship"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install zoxide
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install zoxide"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/zoxide"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install du-dust
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install du-dust"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/dust"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install sd
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install sd"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/sd"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install procs
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install procs"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/procs"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    - name: Install btop
+      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install btop"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/btop"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+
+    # ===================
+    # Other tools
+    # ===================
+    - name: Check if lazygit is installed
+      stat:
+        path: "{{ ansible_env.HOME }}/.local/bin/lazygit"
+      register: lazygit_check
+
+    - name: Get latest lazygit version
+      uri:
+        url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
+        return_content: yes
+      register: lazygit_release
+      when: not lazygit_check.stat.exists
+
+    - name: Install lazygit
+      unarchive:
+        src: "https://github.com/jesseduffield/lazygit/releases/download/{{ lazygit_release.json.tag_name }}/lazygit_{{ lazygit_release.json.tag_name | regex_replace('^v', '') }}_Linux_x86_64.tar.gz"
+        dest: "{{ ansible_env.HOME }}/.local/bin"
+        remote_src: yes
+        include:
+          - lazygit
+      when: not lazygit_check.stat.exists
+
+    - name: Check if bun is installed
+      stat:
+        path: "{{ ansible_env.HOME }}/.bun/bin/bun"
+      register: bun_check
+
+    - name: Install bun
+      shell: curl -fsSL https://bun.sh/install | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.bun/bin/bun"
+      when: not bun_check.stat.exists
+
+    # ===================
+    # Runtimes
+    # ===================
+    - name: Check if mise is installed
+      stat:
+        path: "{{ ansible_env.HOME }}/.local/bin/mise"
+      register: mise_check
+
+    - name: Install mise
+      shell: curl https://mise.run | sh
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/mise"
+      when: not mise_check.stat.exists
+
+    - name: Install Ruby via mise
+      shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global ruby@latest"
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/ruby"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+    - name: Install Node via mise
+      shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global node@lts"
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/node"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+    - name: Install Go via mise
+      shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global go@latest"
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/go"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+    - name: Install Java via mise
+      shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global java@lts"
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/java"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+    # Heroku (depends on node)
+    - name: Check if heroku is installed
+      shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm list -g --depth=0 heroku"
+      register: heroku_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install Heroku CLI via npm
+      shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm install -g heroku"
+      when: heroku_check.rc != 0
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+    # ===================
+    # AI tools
+    # ===================
+    - name: Check if Claude Code is installed
+      stat:
+        path: "{{ ansible_env.HOME }}/.local/bin/claude"
+      register: claude_check
+
+    - name: Install Claude Code
+      shell: curl -fsSL https://claude.ai/install.sh | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/claude"
+      when: not claude_check.stat.exists
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+    - name: Check if OpenCode is installed
+      stat:
+        path: "{{ ansible_env.HOME }}/.local/bin/opencode"
+      register: opencode_check
+
+    - name: Install OpenCode
+      shell: curl -fsSL https://opencode.ai/install | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/opencode"
+      when: not opencode_check.stat.exists
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+    # ===================
+    # Flatpak
+    # ===================
+    - name: Add Flathub remote
+      become: true
+      community.general.flatpak_remote:
+        name: flathub
+        flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+        state: present
+        method: system
+
+    - name: Install Google Chrome
+      become: true
+      community.general.flatpak:
+        name: com.google.Chrome
+        state: present
+        method: system
+
+    - name: Install Slack
+      become: true
+      community.general.flatpak:
+        name: com.slack.Slack
+        state: present
+        method: system
+
+    - name: Install Zoom
+      become: true
+      community.general.flatpak:
+        name: us.zoom.Zoom
+        state: present
+        method: system
+
+    - name: Install Spotify
+      become: true
+      community.general.flatpak:
+        name: com.spotify.Client
+        state: present
+        method: system
+
+    # ===================
+    # Tool configs
+    # ===================
+    - name: Check if tig config is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.config/tig"
+      register: tig_stat
+
+    - name: Stow tig
+      command: stow tig
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not tig_stat.stat.exists or not tig_stat.stat.islnk
+
+    - name: Check if bat config is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.config/bat"
+      register: bat_stat
+
+    - name: Stow bat
+      command: stow bat
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not bat_stat.stat.exists or not bat_stat.stat.islnk
+
+    - name: Check if delta config is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.config/delta"
+      register: delta_stat
+
+    - name: Stow delta
+      command: stow delta
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not delta_stat.stat.exists or not delta_stat.stat.islnk
+
+    - name: Check if eza config is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.config/eza"
+      register: eza_stat
+
+    - name: Stow eza
+      command: stow eza
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not eza_stat.stat.exists or not eza_stat.stat.islnk
+
+    - name: Check if lazygit config is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.config/lazygit"
+      register: lazygit_stat
+
+    - name: Stow lazygit
+      command: stow lazygit
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not lazygit_stat.stat.exists or not lazygit_stat.stat.islnk
+
+    - name: Check if claude config is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.claude"
+      register: claude_stat
+
+    - name: Stow claude
+      command: stow claude
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not claude_stat.stat.exists or not claude_stat.stat.islnk
+
+    - name: Check if opencode config is stowed
+      stat:
+        path: "{{ ansible_env.HOME }}/.config/opencode"
+      register: opencode_stat
+
+    - name: Stow opencode
+      command: stow opencode
+      args:
+        chdir: "{{ dotfiles_path }}"
+      when: not opencode_stat.stat.exists or not opencode_stat.stat.islnk
