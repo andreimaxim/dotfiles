@@ -9,3 +9,7 @@ set expandtab         " Insert spaces when pressing Tab
 set shiftwidth=2      " Indentation level is 2 spaces
 set softtabstop=2     " Tab inserts/deletes 2 spaces
 " tabstop remains 8 (default) so any hard tabs stand out visually
+
+" Catppuccin theme
+set termguicolors
+colorscheme catppuccin_mocha
