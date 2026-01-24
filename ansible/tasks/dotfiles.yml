@@ -11,10 +11,16 @@
     accept_hostkey: yes
   when: not dotfiles_check.stat.exists
 
+- name: Check if .bashrc is a symlink
+  stat:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+  register: bashrc_stat
+
 - name: Remove default .bashrc before stow
   file:
     path: "{{ ansible_env.HOME }}/.bashrc"
     state: absent
+  when: bashrc_stat.stat.exists and not bashrc_stat.stat.islnk
 
 - name: Stow dotfiles packages
   shell: "stow {{ item }}"
