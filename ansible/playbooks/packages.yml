@@ -79,11 +79,21 @@
     # ===================
     # Containers
     # ===================
-    - name: Install podman-docker
+    - name: Install container tools
       become: true
       community.general.rpm_ostree_pkg:
-        name: podman-docker
+        name:
+          - podman
+          - podman-docker
+          - podman-tui
         state: present
+
+    - name: Enable podman socket for current user
+      ansible.builtin.systemd:
+        name: podman.socket
+        state: started
+        enabled: true
+        scope: user
 
     # ===================
     # 1Password
