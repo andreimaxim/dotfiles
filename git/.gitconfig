@@ -1,6 +1,6 @@
 [core]
 	symlinks = false
-	excludesfile = /home/andrei/.gitignore
+	excludesfile = ~/.gitignore
 
 [init]
  	defaultBranch = main
