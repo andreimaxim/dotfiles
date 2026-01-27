@@ -14,7 +14,7 @@ Then clone the repo:
 
 ```bash
 git clone https://github.com/andreimaxim/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
+cd ~/.dotfiles/ansible
 ```
 
 There are two main steps:
@@ -22,7 +22,7 @@ There are two main steps:
 Installing the initial base backages:
 
 ```bash
-ansible-playbook -K ansible/playbooks/packages.yml
+ansible-playbook -K playbooks/packages.yml
 ```
 
 A reboot is required.
@@ -30,5 +30,5 @@ A reboot is required.
 Then the rest of the local config, apps and packages:
 
 ```bash
-ansible-playbook -K ansible/playbooks/tools.yml
+ansible-playbook -K playbooks/tools.yml
 ```

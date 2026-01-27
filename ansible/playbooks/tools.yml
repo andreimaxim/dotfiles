@@ -314,6 +314,13 @@
         state: present
         method: system
 
+    - name: Install Discord
+      become: true
+      community.general.flatpak:
+        name: com.discordapp.Discord
+        state: present
+        method: system
+
     # ===================
     # Tool configs
     # ===================
