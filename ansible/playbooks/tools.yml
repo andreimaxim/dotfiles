@@ -233,6 +233,20 @@
       environment:
         PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
 
+    - name: Install uv via mise
+      shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global uv@latest"
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/uv"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+    - name: Install Python via mise
+      shell: "{{ ansible_env.HOME }}/.local/bin/mise use --global python@latest"
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/share/mise/installs/python"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
     # Heroku (depends on node)
     - name: Check if heroku is installed
       shell: "{{ ansible_env.HOME }}/.local/bin/mise exec node -- npm list -g --depth=0 heroku"
