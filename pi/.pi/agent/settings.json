@@ -1,0 +1,12 @@
+{
+  "lastChangelogVersion": "0.50.1",
+  "defaultProvider": "opencode",
+  "defaultModel": "gemini-3-flash",
+  "defaultThinkingLevel": "high",
+  "enabledModels": [
+    "openai-codex/gpt-5.2-codex",
+    "opencode/claude-opus-4-5",
+    "opencode/gemini-3-flash",
+    "opencode/gemini-3-pro"
+  ]
+}
