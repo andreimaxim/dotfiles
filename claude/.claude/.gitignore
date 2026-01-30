@@ -27,3 +27,12 @@ projects/
 
 # Plugins cache (keep installed plugins list if needed)
 plugins/
+
+# Paste cache
+paste-cache/
+
+# Task state
+tasks/
+
+# Nested project config (created when running claude in this directory)
+.claude/

@@ -1,0 +1,19 @@
+# Stow default ignores, minus .gitignore
+RCS
+.+,v
+
+CVS
+\.\#.+
+
+\.svn
+_darcs
+\.hg
+\.git
+\.bzr
+
+\.DS_Store
+
+# Editor backups
+.*\.swp
+.*~
+\#.*\#
