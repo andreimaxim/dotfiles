@@ -74,6 +74,7 @@
           - jq
           - gh
           - ShellCheck
+          - kubeclt
         state: present
 
     # ===================

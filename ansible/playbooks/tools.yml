@@ -335,6 +335,48 @@
         state: present
         method: system
 
+    - name: Install Obsidian
+      become: true
+      community.general.flatpak:
+        name: md.obsidian.Obsidian
+        state: present
+        method: system
+
+    - name: Install Postman
+      become: true
+      community.general.flatpak:
+        name: com.getpostman.Postman
+        state: present
+        method: system
+
+    - name: Install Darktable
+      become: true
+      community.general.flatpak:
+        name: org.darktable.Darktable
+        state: present
+        method: system
+
+    - name: Install Podman Desktop
+      become: true
+      community.general.flatpak:
+        name: io.podman_desktop.PodmanDesktop
+        state: present
+        method: system
+
+    - name: Install VLC
+      become: true
+      community.general.flatpak:
+        name: org.videolan.VLC
+        state: present
+        method: system
+
+    - name: Install Antares SQL
+      become: true
+      community.general.flatpak:
+        name: io.antares.AntaresSQL
+        state: present
+        method: system
+
     # ===================
     # Tool configs
     # ===================
