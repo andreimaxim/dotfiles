@@ -1,11 +1,11 @@
 {
-  "lastChangelogVersion": "0.51.6",
+  "lastChangelogVersion": "0.52.0",
   "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-4-5",
+  "defaultModel": "claude-opus-4-6",
   "defaultThinkingLevel": "high",
   "enabledModels": [
-    "openai-codex/gpt-5.2-codex",
-    "github-copilot/claude-opus-4.5",
-    "anthropic/claude-opus-4-5"
-  ]
+    "anthropic/claude-opus-4-6",
+    "openai-codex/gpt-5.3-codex"
+  ],
+  "hideThinkingBlock": false
 }
