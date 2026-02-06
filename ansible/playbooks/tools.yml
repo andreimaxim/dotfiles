@@ -311,6 +311,20 @@
         PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
 
     # ===================
+    # Zed
+    # ===================
+    - name: Check if Zed is installed
+      stat:
+        path: "{{ ansible_env.HOME }}/.local/bin/zed"
+      register: zed_check
+
+    - name: Install Zed
+      shell: curl -fsSL https://zed.dev/install.sh | sh
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/zed"
+      when: not zed_check.stat.exists
+
+    # ===================
     # Flatpak
     # ===================
     - name: Add Flathub remote
