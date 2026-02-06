@@ -180,6 +180,27 @@
           - lazygit
       when: not lazygit_check.stat.exists
 
+    - name: Check if k9s is installed
+      stat:
+        path: "{{ ansible_env.HOME }}/.local/bin/k9s"
+      register: k9s_check
+
+    - name: Get latest k9s version
+      uri:
+        url: https://api.github.com/repos/derailed/k9s/releases/latest
+        return_content: yes
+      register: k9s_release
+      when: not k9s_check.stat.exists
+
+    - name: Install k9s
+      unarchive:
+        src: "https://github.com/derailed/k9s/releases/download/{{ k9s_release.json.tag_name }}/k9s_Linux_amd64.tar.gz"
+        dest: "{{ ansible_env.HOME }}/.local/bin"
+        remote_src: yes
+        include:
+          - k9s
+      when: not k9s_check.stat.exists
+
     - name: Check if bun is installed
       stat:
         path: "{{ ansible_env.HOME }}/.bun/bin/bun"
