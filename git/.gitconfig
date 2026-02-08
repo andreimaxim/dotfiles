@@ -28,5 +28,8 @@
 [commit]
 	gpgsign = true
 
+[alias]
+    diffs = -c delta.side-by-side=true diff
+
 [include]
     path = ~/.config/delta/delta.gitconfig
