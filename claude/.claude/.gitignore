@@ -34,5 +34,12 @@ paste-cache/
 # Task state
 tasks/
 
+# Reports
+usage-data/
+
+
+# Local settings
+settings.local.json
+
 # Nested project config (created when running claude in this directory)
 .claude/
