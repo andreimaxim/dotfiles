@@ -1,11 +1,12 @@
 {
-  "lastChangelogVersion": "0.52.8",
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.3-codex",
+  "lastChangelogVersion": "0.52.10",
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-opus-4-6",
   "defaultThinkingLevel": "xhigh",
   "enabledModels": [
     "anthropic/claude-opus-4-6",
-    "openai-codex/gpt-5.3-codex"
+    "openai-codex/gpt-5.3-codex",
+    "opencode/minimax-m2.5-free"
   ],
   "hideThinkingBlock": false
 }
