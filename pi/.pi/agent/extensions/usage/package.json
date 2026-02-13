@@ -1,0 +1,22 @@
+{
+  "name": "pi-usage",
+  "version": "0.1.0",
+  "description": "Usage tracking extension for pi",
+  "license": "MIT",
+  "type": "module",
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test 'test/*.test.ts'",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt --write .",
+    "fmt:check": "oxfmt --check .",
+    "check": "oxlint && oxfmt --check ."
+  },
+  "devDependencies": {
+    "oxfmt": "^0.32.0",
+    "oxlint": "^1.47.0"
+  }
+}
