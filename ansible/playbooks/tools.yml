@@ -410,6 +410,54 @@
         state: present
         method: system
 
+    - name: Install GIMP
+      become: true
+      community.general.flatpak:
+        name: org.gimp.GIMP
+        remote: fedora
+        state: present
+        method: system
+
+    - name: Install digiKam
+      become: true
+      community.general.flatpak:
+        name: org.kde.digikam
+        remote: fedora
+        state: present
+        method: system
+
+    - name: Install Kate
+      become: true
+      community.general.flatpak:
+        name: org.kde.kate
+        remote: fedora
+        state: present
+        method: system
+
+    - name: Install Kdenlive
+      become: true
+      community.general.flatpak:
+        name: org.kde.kdenlive
+        remote: flathub
+        state: present
+        method: system
+
+    - name: Install Krita
+      become: true
+      community.general.flatpak:
+        name: org.kde.krita
+        remote: flathub
+        state: present
+        method: system
+
+    - name: Install LibreOffice
+      become: true
+      community.general.flatpak:
+        name: org.libreoffice.LibreOffice
+        remote: flathub
+        state: present
+        method: system
+
     # ===================
     # Tool configs
     # ===================
