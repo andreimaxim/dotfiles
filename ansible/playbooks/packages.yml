@@ -18,6 +18,7 @@
           - unzip
           - bash-completion
           - emacs
+          - gnuplot
         state: present
 
     # ===================
@@ -54,7 +55,7 @@
           - vips-devel
           - ImageMagick
           - ImageMagick-devel
-          - postgresql
+          - postgresql16
           - libpq-devel
           - redis
           - sqlite
@@ -77,6 +78,7 @@
           - jq
           - gh
           - direnv
+          - tmux
           - ShellCheck
           - kubernetes1.35-client
         state: present
