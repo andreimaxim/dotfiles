@@ -458,6 +458,13 @@
         state: present
         method: system
 
+    - name: Install Fastmail
+      become: true
+      community.general.flatpak:
+        name: com.fastmail.Fastmail
+        state: present
+        method: system
+
     # ===================
     # Tool configs
     # ===================
