@@ -39,6 +39,7 @@ alias lzg='lazygit'
 alias lzd='lazydocker'
 alias opencode="$HOME/.opencode/bin/opencode"
 alias amp="$HOME/.amp/bin/amp"
+alias cc="claude --dangerously-skip-permissions"
 
 # Emacs
 alias em="emacsclient -c -n"
@@ -87,6 +88,3 @@ fi
 if command -v zoxide &>/dev/null; then
   eval "$(zoxide init bash)"
 fi
-
-# opencode
-export PATH=/home/andrei/.opencode/bin:$PATH
