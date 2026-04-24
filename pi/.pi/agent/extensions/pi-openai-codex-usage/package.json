@@ -1,0 +1,33 @@
+{
+  "name": "pi-openai-codex-usage",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pi extension that adds /codex-usage for fetching OpenAI Codex subscription usage on demand.",
+  "keywords": [
+    "pi-package"
+  ],
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test 'test/*.test.ts'",
+    "test:coverage": "node --experimental-strip-types --test --experimental-test-coverage 'test/*.test.ts'",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt --write .",
+    "fmt:check": "oxfmt --check .",
+    "check": "oxlint && oxfmt --check ."
+  },
+  "devDependencies": {
+    "@mariozechner/pi-coding-agent": "^0.53.0",
+    "@typescript/native-preview": "^7.0.0-dev.20260217.1",
+    "oxfmt": "^0.32.0",
+    "oxlint": "^1.47.0"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}
