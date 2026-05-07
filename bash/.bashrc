@@ -39,7 +39,19 @@ alias lzg='lazygit'
 alias lzd='lazydocker'
 alias opencode="$HOME/.opencode/bin/opencode"
 alias amp="$HOME/.amp/bin/amp"
-alias cc="claude --dangerously-skip-permissions"
+cc() {
+  local args=(--system-prompt-file ~/.claude/SYSTEM.md)
+
+  if [[ -f ./AGENTS.md ]] && { [[ ! -e ./CLAUDE.md ]] || [[ -L ./CLAUDE.md ]]; }; then
+    args+=(--append-system-prompt-file ./AGENTS.md)
+  fi
+
+  if [[ -d ./.agents ]]; then
+    args+=(--plugin-dir ./.agents)
+  fi
+
+  command claude "${args[@]}" "$@"
+}
 
 # Emacs
 alias em="emacsclient -c -n"
