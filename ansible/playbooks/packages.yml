@@ -81,6 +81,14 @@
           - tmux
           - ShellCheck
           - kubernetes1.35-client
+          - bat
+          - git-delta
+          - eza
+          - ripgrep
+          - zoxide
+          - du-dust
+          - procs
+          - btop
         state: present
 
     # ===================
@@ -145,6 +153,64 @@
       become: true
       community.general.rpm_ostree_pkg:
         name: code
+        state: present
+
+    # ===================
+    # Google Chrome
+    # ===================
+    # Installed as RPM (not Flatpak) so 1Password browser integration and
+    # other native-messaging hosts work without sandbox workarounds.
+    - name: Add Google Chrome repository
+      become: true
+      copy:
+        dest: /etc/yum.repos.d/google-chrome.repo
+        content: |
+          [google-chrome]
+          name=google-chrome
+          baseurl=https://dl.google.com/linux/chrome/rpm/stable/x86_64
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://dl.google.com/linux/linux_signing_key.pub
+
+    - name: Install google-chrome-stable
+      become: true
+      community.general.rpm_ostree_pkg:
+        name: google-chrome-stable
+        state: present
+
+    # ===================
+    # Brave Origin Nightly
+    # ===================
+    # Origin is the privacy-focused build of Brave (no ads, no rewards,
+    # no Web3/crypto features). Only available on the nightly channel.
+    - name: Add Brave Browser Nightly repository
+      become: true
+      ansible.builtin.get_url:
+        url: https://brave-browser-rpm-nightly.s3.brave.com/brave-browser-nightly.repo
+        dest: /etc/yum.repos.d/brave-browser-nightly.repo
+        mode: '0644'
+
+    - name: Install brave-origin-nightly
+      become: true
+      community.general.rpm_ostree_pkg:
+        name: brave-origin-nightly
+        state: present
+
+    # ===================
+    # Starship
+    # ===================
+    # Not in Fedora repos; installed from the maintainer-recommended COPR.
+    - name: Add Starship COPR repository
+      become: true
+      ansible.builtin.get_url:
+        url: https://copr.fedorainfracloud.org/coprs/atim/starship/repo/fedora-$releasever/atim-starship-fedora.repo
+        dest: /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:atim:starship.repo
+        mode: '0644'
+
+    - name: Install starship
+      become: true
+      community.general.rpm_ostree_pkg:
+        name: starship
         state: present
 
     - name: Notify about reboot

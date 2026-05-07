@@ -1,12 +1,18 @@
 {
-  "lastChangelogVersion": "0.52.10",
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-4-6",
-  "defaultThinkingLevel": "xhigh",
+  "lastChangelogVersion": "0.70.0",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5-fast",
+  "defaultThinkingLevel": "high",
   "enabledModels": [
-    "anthropic/claude-opus-4-6",
-    "openai-codex/gpt-5.3-codex",
-    "opencode/minimax-m2.5-free"
+    "github-copilot/claude-opus-4.5",
+    "fireworks/accounts/fireworks/models/kimi-k2p6",
+    "openai-codex/gpt-5.5-fast"
   ],
-  "hideThinkingBlock": false
+  "hideThinkingBlock": false,
+  "theme": "catppuccin-mocha",
+  "extensions": [
+    "~/.pi/agent/extensions/pi-usage",
+    "/home/andrei/.pi/agent/extensions/pi-openai-codex-usage/extensions/codex-usage-v2.js"
+  ],
+  "packages": []
 }

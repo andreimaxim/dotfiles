@@ -78,84 +78,6 @@
         creates: "{{ ansible_env.HOME }}/.cargo/bin/rustup"
       when: not rustup_check.stat.exists
 
-    # Cargo packages
-    - name: Install bat
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install bat"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/bat"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install git-delta
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install git-delta"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/delta"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install eza
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install eza"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/eza"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install fd-find
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install fd-find"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/fd"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install ripgrep
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install ripgrep"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/rg"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install starship
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install starship"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/starship"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install zoxide
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install zoxide"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/zoxide"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install du-dust
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install du-dust"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/dust"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install sd
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install sd"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/sd"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install procs
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install procs"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/procs"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
-    - name: Install btop
-      shell: "{{ ansible_env.HOME }}/.cargo/bin/cargo install btop"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/btop"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-
     # ===================
     # Other tools
     # ===================
@@ -330,13 +252,6 @@
       community.general.flatpak_remote:
         name: flathub
         flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
-        state: present
-        method: system
-
-    - name: Install Google Chrome
-      become: true
-      community.general.flatpak:
-        name: com.google.Chrome
         state: present
         method: system
 
