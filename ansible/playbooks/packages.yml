@@ -55,7 +55,7 @@
           - vips-devel
           - ImageMagick
           - ImageMagick-devel
-          - postgresql16
+          - postgresql
           - libpq-devel
           - redis
           - sqlite
