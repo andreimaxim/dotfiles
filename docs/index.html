@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WSL 2 development setup</title>
+<meta name="description" content="Commands to take a fresh Windows machine to a ready-for-development WSL 2 Ubuntu with mise bootstrap.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --crust:    #11111b;
+    --mantle:   #181825;
+    --base:     #1e1e2e;
+    --surface0: #313244;
+    --surface1: #45475a;
+    --overlay:  #6c7086;
+    --subtext:  #a6adc8;
+    --text:     #cdd6f4;
+    --green:    #a6e3a1;
+    --blue:     #89b4fa;
+    --peach:    #fab387;
+    --yellow:   #f9e2af;
+    --mauve:    #cba6f7;
+    --lavender: #b4befe;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { color-scheme: dark; }
+
+  body {
+    font-family: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+    font-size: 15px;
+    line-height: 1.65;
+    background: var(--base);
+    background-image:
+      radial-gradient(60rem 30rem at 85% -10%, rgba(166, 227, 161, 0.07), transparent 60%),
+      radial-gradient(50rem 25rem at 0% 0%, rgba(137, 180, 250, 0.06), transparent 55%);
+    background-repeat: no-repeat;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  ::selection { background: var(--mauve); color: var(--crust); }
+
+  main {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 4.5rem 1.25rem 5rem;
+  }
+
+  a { color: var(--lavender); text-underline-offset: 3px; }
+  a:hover { color: var(--text); }
+
+  /* ---- steps ---- */
+
+  ol.steps { list-style: none; counter-reset: step; }
+
+  ol.steps > li {
+    counter-increment: step;
+    padding: 2.5rem 0;
+    border-bottom: 1px solid var(--surface0);
+  }
+  ol.steps > li:first-child { padding-top: 0; }
+
+  h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.4rem;
+  }
+  h2::before {
+    content: counter(step, decimal-leading-zero);
+    color: var(--green);
+    margin-right: 0.9rem;
+    font-weight: 500;
+  }
+
+  .note {
+    color: var(--subtext);
+    font-size: 0.875rem;
+    margin: 0.6rem 0;
+    max-width: 40rem;
+  }
+  .note code {
+    color: var(--peach);
+    font-size: 0.95em;
+    background: var(--mantle);
+    border: 1px solid var(--surface0);
+    border-radius: 4px;
+    padding: 0.05em 0.35em;
+  }
+  .note strong { color: var(--yellow); font-weight: 600; }
+
+  /* ---- terminal blocks ---- */
+
+  figure.term {
+    margin: 1.1rem 0;
+    border: 1px solid var(--surface0);
+    border-radius: 8px;
+    background: var(--crust);
+    overflow: hidden;
+  }
+
+  figure.term figcaption {
+    padding: 0.45rem 0.9rem;
+    background: var(--mantle);
+    border-bottom: 1px solid var(--surface0);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+  }
+
+  .ctx { color: var(--overlay); }
+  .ctx::before { content: "● "; font-size: 0.65rem; vertical-align: 1px; }
+  .ctx.ps::before { color: var(--blue); }
+  .ctx.sh::before { color: var(--green); }
+
+  figure.term pre {
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+  figure.term code { font-family: inherit; font-size: 0.875rem; }
+
+  /* ---- footer ---- */
+
+  footer {
+    padding-top: 2.5rem;
+    color: var(--overlay);
+    font-size: 0.8rem;
+  }
+  footer p { margin-bottom: 0.5rem; }
+</style>
+</head>
+<body>
+<main>
+
+<ol class="steps">
+
+<li>
+  <h2>Install WSL 2</h2>
+  <p class="note">Reboot when prompted and create your UNIX user.</p>
+  <figure class="term">
+    <figcaption><span class="ctx ps">PowerShell · Administrator</span></figcaption>
+    <pre><code>wsl --install</code></pre>
+  </figure>
+</li>
+
+<li>
+  <h2>Install base packages</h2>
+  <figure class="term">
+    <figcaption><span class="ctx sh">Ubuntu</span></figcaption>
+    <pre><code>sudo apt update &amp;&amp; sudo apt install -y git curl ca-certificates</code></pre>
+  </figure>
+</li>
+
+<li>
+  <h2>Install mise</h2>
+  <figure class="term">
+    <figcaption><span class="ctx sh">Ubuntu</span></figcaption>
+    <pre><code>curl https://mise.run | sh</code></pre>
+  </figure>
+</li>
+
+<li>
+  <h2>Clone the config</h2>
+  <figure class="term">
+    <figcaption><span class="ctx sh">Ubuntu</span></figcaption>
+    <pre><code>git clone https://github.com/andreimaxim/nix-config.git ~/.config/mise</code></pre>
+  </figure>
+</li>
+
+<li>
+  <h2>Bootstrap</h2>
+  <figure class="term">
+    <figcaption><span class="ctx sh">Ubuntu</span></figcaption>
+    <pre><code>~/.local/bin/mise bootstrap --dry-run
+~/.local/bin/mise bootstrap --yes --force-dotfiles</code></pre>
+  </figure>
+</li>
+
+</ol>
+
+<footer>
+  <p><a href="https://github.com/andreimaxim/nix-config">github.com/andreimaxim/nix-config</a></p>
+</footer>
+
+</main>
+
+</body>
+</html>

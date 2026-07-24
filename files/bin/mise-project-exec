@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+project=$1
+shift
+cd "$project"
+exec mise exec -- "$@"

@@ -1,12 +1,12 @@
 local function project_command(command)
   return function(dispatchers, config)
     local cwd = config.root_dir or vim.fn.getcwd()
-    local envrc = vim.fs.find(".envrc", { path = cwd, upward = true })[1]
+    local version_file = vim.fs.find(".ruby-version", { path = cwd, upward = true })[1]
     local cmd = vim.deepcopy(command)
 
-    if envrc then
-      cwd = vim.fs.dirname(envrc)
-      cmd = vim.list_extend({ "direnv", "exec", cwd }, cmd)
+    if version_file then
+      cwd = vim.fs.dirname(version_file)
+      cmd = vim.list_extend({ "mise-project-exec", cwd }, cmd)
     end
 
     return vim.lsp.rpc.start(cmd, dispatchers, {

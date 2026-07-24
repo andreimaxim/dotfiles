@@ -1,38 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if dpkg-query -W -f='${db:Status-Status}' nix-bin 2>/dev/null | grep -qx installed; then
-  echo "Removing the Debian nix-bin package..."
-  DEBIAN_FRONTEND=noninteractive sudo apt-get purge -y nix-bin
+required_version=2026.7.12
+installed_version=
+if [[ -x "$HOME/.local/bin/mise" ]]; then
+  installed_version=$("$HOME/.local/bin/mise" --version | awk '{ print $1 }')
 fi
 
-if [[ ! -x /nix/nix-installer || ! -f /nix/receipt.json ]]; then
-  echo "Installing Determinate Nix..."
-  curl --proto '=https' --tlsv1.2 --silent --show-error --fail --location \
-    https://install.determinate.systems/nix |
-    sh -s -- install --no-confirm
+if [[ "$installed_version" != "$required_version" ]]; then
+  curl --proto '=https' --tlsv1.2 --silent --show-error --fail --location https://mise.run |
+    MISE_VERSION="v$required_version" MISE_INSTALL_PATH="$HOME/.local/bin/mise" sh
 fi
-
-nix_profile=/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-if [[ ! -r "$nix_profile" ]]; then
-  echo "Determinate Nix profile not found at $nix_profile" >&2
-  exit 1
-fi
-
-profile_marker="# nix-config Determinate Nix"
-if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
-  cat >> "$HOME/.bash_profile" <<'EOF'
-
-# nix-config Determinate Nix
-if [[ -r /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
-  unset __ETC_PROFILE_NIX_SOURCED
-  source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-fi
-EOF
-fi
-
-# The installer cannot update this running setup process.
-# shellcheck disable=SC1090
-source "$nix_profile"
-
-nix --version
+"$HOME/.local/bin/mise" --version

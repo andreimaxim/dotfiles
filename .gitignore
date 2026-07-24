@@ -1,8 +1,10 @@
-result
-result-*
-.direnv/
 docs/.jekyll-cache/
 docs/_site/
+.mise.local.toml
+mise.local.toml
+.mise.*.toml
+!.mise.toml
+*.secret
 
 # Private working notes (kept on disk, not pushed):
 docs/LAPTOP_BOOTSTRAP.md

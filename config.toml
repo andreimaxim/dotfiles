@@ -1,0 +1,157 @@
+min_version = "2026.7.12"
+
+[settings]
+idiomatic_version_file_enable_tools = ["ruby"]
+env_file = ".env"
+lockfile = true
+
+[settings.npm]
+package_manager = "npm"
+
+[settings.status]
+show_env = true
+show_tools = false
+truncate = false
+
+[tools]
+node = "24"
+rust = "stable"
+neovim = "latest"
+bat = "latest"
+eza = "latest"
+fd = "latest"
+fzf = "latest"
+ripgrep = "latest"
+delta = "latest"
+lazygit = "latest"
+starship = "latest"
+zoxide = "latest"
+github-cli = "latest"
+tokei = "latest"
+tree-sitter = "latest"
+"github:quarylabs/sqruff" = { version = "latest", asset_pattern = "sqruff-linux-x86_64-musl.tar.gz" }
+"npm:@earendil-works/pi-coding-agent" = "latest"
+"npm:hunkdiff" = "latest"
+"npm:ccusage" = "latest"
+"npm:@andreimaxim/git-xor" = "latest"
+"npm:@herb-tools/language-server" = "latest"
+"github:solarwinds/swo-cli" = { version = "latest", asset_pattern = "swo-cli_linux_amd64.zip" }
+
+[bootstrap.packages]
+"apt:git" = "latest"
+"apt:git-lfs" = "latest"
+"apt:build-essential" = "latest"
+"apt:pkg-config" = "latest"
+"apt:clang" = "latest"
+"apt:autoconf" = "latest"
+"apt:bison" = "latest"
+"apt:jq" = "latest"
+"apt:btop" = "latest"
+"apt:tig" = "latest"
+"apt:postgresql" = "latest"
+"apt:postgresql-client" = "latest"
+"apt:redis-server" = "latest"
+"apt:redis-tools" = "latest"
+"apt:libssl-dev" = "latest"
+"apt:libyaml-dev" = "latest"
+"apt:libreadline-dev" = "latest"
+"apt:zlib1g-dev" = "latest"
+"apt:libffi-dev" = "latest"
+"apt:libgmp-dev" = "latest"
+"apt:libgdbm-dev" = "latest"
+"apt:libdb-dev" = "latest"
+"apt:liblzma-dev" = "latest"
+"apt:uuid-dev" = "latest"
+"apt:libpq-dev" = "latest"
+"apt:libsqlite3-dev" = "latest"
+"apt:sqlite3" = "latest"
+"apt:libvips-dev" = "latest"
+"apt:imagemagick" = "latest"
+"apt:ffmpeg" = "latest"
+"apt:poppler-utils" = "latest"
+"apt:luarocks" = "latest"
+"apt:unzip" = "latest"
+"apt:wl-clipboard" = "latest"
+"apt:procps" = "latest"
+"apt:bubblewrap" = "latest"
+"apt:socat" = "latest"
+"apt:less" = "latest"
+
+[dotfiles]
+"~/.bashrc" = { source = "files/bash/bashrc", mode = "symlink" }
+"~/.bash_profile" = { source = "files/bash/profile", mode = "symlink" }
+"~/.profile" = { source = "files/bash/profile", mode = "symlink" }
+"~/.inputrc" = { source = "files/bash/inputrc", mode = "symlink" }
+"~/.npmrc" = { source = "files/npm/npmrc", mode = "symlink" }
+"~/.default-gems" = { source = "files/ruby/default-gems", mode = "symlink" }
+"~/.config/bat/config" = { source = "files/bat/config", mode = "symlink" }
+"~/.config/btop/btop.conf" = { source = "files/btop/btop.conf", mode = "symlink" }
+"~/.config/btop/themes/catppuccin_mocha.theme" = { source = "files/btop/catppuccin_mocha.theme", mode = "symlink" }
+"~/.config/eza/theme.yml" = { source = "files/eza/theme.yml", mode = "symlink" }
+"~/.config/git/config" = { source = "files/git/config", mode = "symlink" }
+"~/.config/git/ignore" = { source = "files/git/ignore", mode = "symlink" }
+"~/.config/git/allowed_signers" = { source = "files/git/allowed_signers", mode = "symlink" }
+"~/.config/hunk/config.toml" = { source = "files/hunk/config.toml", mode = "symlink" }
+"~/.config/lazygit/config.yml" = { source = "files/lazygit/config.yml", mode = "symlink" }
+"~/.config/sqruff/.sqruff" = { source = "files/sqruff/sqruff", mode = "symlink" }
+"~/.config/tig/config" = { source = "files/tig/config", mode = "symlink" }
+"~/.config/nvim" = { source = "files/nvim", mode = "symlink-each" }
+"~/.local/bin/onepassword-ssh" = { source = "files/bin/onepassword-ssh", mode = "symlink" }
+"~/.local/bin/onepassword-ssh-sign" = { source = "files/bin/onepassword-ssh-sign", mode = "symlink" }
+"~/.local/bin/mise-project-exec" = { source = "files/bin/mise-project-exec", mode = "symlink" }
+"~/.claude/settings.json" = { source = "files/claude/settings.json", mode = "symlink" }
+"~/.claude/SYSTEM.md" = { source = "files/claude/SYSTEM.md", mode = "symlink" }
+"~/.agents/skills" = { source = "files/agents/skills", mode = "symlink-each" }
+"~/.claude/skills" = { source = "files/agents/skills", mode = "symlink-each" }
+
+[tasks.bootstrap]
+description = "Enable native database services and create the local PostgreSQL role"
+run = '''
+set -eu
+
+remove_legacy_nix_link() {
+  path=$1
+  [ -L "$path" ] || return 0
+  target=$(readlink "$path")
+  case "$target" in
+    /nix/store/*) rm -- "$path" ;;
+  esac
+}
+
+# Remove files previously deployed by Home Manager but intentionally absent
+# from the mise setup. Only /nix/store symlinks are touched.
+for path in \
+  "$HOME/.agents/skills/nixify-project/SKILL.md" \
+  "$HOME/.claude/skills/nixify-project/SKILL.md" \
+  "$HOME/.config/containers/containers.conf" \
+  "$HOME/.config/containers/systemd/memcached.container" \
+  "$HOME/.config/containers/systemd/mysql57.container" \
+  "$HOME/.config/containers/systemd/postgres16.container" \
+  "$HOME/.config/containers/systemd/redis.container" \
+  "$HOME/.config/direnv/direnv.toml" \
+  "$HOME/.config/direnv/lib/hm-nix-direnv.sh" \
+  "$HOME/.config/environment.d/10-home-manager.conf" \
+  "$HOME/.config/systemd/user/podman-user-wait-network-online.service.d/override.conf" \
+  "$HOME/.config/systemd/user/tray.target" \
+  "$HOME/.config/wezterm/wezterm.lua" \
+  "$HOME/.config/zed/settings.json"
+do
+  remove_legacy_nix_link "$path"
+done
+
+if [ "$(cat /proc/1/comm 2>/dev/null || true)" != systemd ]; then
+  cat >&2 <<'EOF'
+WSL systemd is required. Add this to /etc/wsl.conf:
+
+[boot]
+systemd=true
+
+Then run `wsl.exe --shutdown` from Windows and reopen Ubuntu.
+EOF
+  exit 1
+fi
+sudo systemctl enable --now postgresql.service redis-server.service
+if ! sudo -u postgres psql -X -Atqc 'SELECT rolname FROM pg_roles' | grep -Fxq -- "$USER"; then
+  sudo -u postgres createuser --superuser -- "$USER"
+fi
+'''

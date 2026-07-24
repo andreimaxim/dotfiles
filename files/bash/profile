@@ -1,0 +1,4 @@
+export PATH="$HOME/.local/bin:$PATH"
+if [ -n "${BASH_VERSION:-}" ] && [ -r "$HOME/.bashrc" ]; then
+  . "$HOME/.bashrc"
+fi

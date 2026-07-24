@@ -1,0 +1,37 @@
+# Stop here for non-interactive shells.
+case $- in *i*) ;; *) return ;; esac
+
+export PATH="$HOME/.local/bin:$PATH"
+export HISTCONTROL=ignoreboth
+export HISTSIZE=32768
+export HISTFILESIZE=32768
+export EDITOR=nvim
+export VISUAL=nvim
+
+shopt -s histappend extglob globstar checkjobs
+
+if [ -r "$HOME/.config/op/plugins.sh" ]; then
+  # shellcheck disable=SC1091
+  source "$HOME/.config/op/plugins.sh"
+fi
+if command -v ssh.exe >/dev/null 2>&1; then
+  alias ssh=ssh.exe ssh-add=ssh-add.exe
+fi
+
+alias ls='eza -lh --group-directories-first'
+alias lsa='ls -a'
+alias lt='eza --tree --level=2 --long --icons --git'
+alias lta='lt -a'
+alias ff="fzf --preview 'bat --style=numbers --color=always {}'"
+alias cd=z ..='cd ..' ...='cd ../..' ....='cd ../../..'
+alias lzg=lazygit gs='git status' n=nvim vi=nvim vim=nvim
+alias r=bin/rails rs='bin/rails server' rc='bin/rails console' rt='bin/rails test'
+alias rdb='bin/rails dbconsole' rdm='bin/rails db:migrate' rdr='bin/rails db:rollback'
+alias rgc='bin/rails g controller' rgj='bin/rails g job' rgm='bin/rails g model' rgs='bin/rails g script'
+alias ccx='claude --system-prompt-file "$HOME/.claude/SYSTEM.md"'
+if command -v docker >/dev/null 2>&1; then alias d=docker; fi
+
+eval "$(mise activate bash)"
+eval "$(fzf --bash)"
+eval "$(zoxide init bash)"
+eval "$(starship init bash)"
