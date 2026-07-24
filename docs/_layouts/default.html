@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page.title | default: site.title | default: "nix-home-manager" }}</title>
+    {% if page.description or site.description %}
+    <meta name="description" content="{{ page.description | default: site.description }}" />
+    {% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <a
+          class="repo-path"
+          href="https://github.com/andreimaxim/nix-config"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          github.com/andreimaxim/nix-config
+        </a>
+      </header>
+
+      <main>
+        {{ content }}
+      </main>
+
+      <footer class="foot">
+        <span>// last edited {{ site.time | date: "%b %Y" | downcase }}</span>
+        <span data-scroll-top>↑ top</span>
+      </footer>
+    </div>
+
+    <script>
+      // ── Decorate Jekyll/Rouge fenced-block wrappers as our .code-block ──
+      // Rouge emits:
+      //   <div class="language-X highlighter-rouge" data-before=… data-path=…>
+      //     <div class="highlight"><pre class="highlight"><code>…spans…</code></pre></div>
+      //   </div>
+      // The kramdown IAL `{: data-before="…" data-path="…"}` after a fenced block
+      // attaches its attributes to the outermost wrapper div.
+      document.querySelectorAll('main div.highlighter-rouge').forEach(function (wrap) {
+        if (wrap.closest('.cmd-row, .hero')) return;
+        if (wrap.parentElement && wrap.parentElement.classList.contains('code-block')) return;
+
+        var langMatch = wrap.className.match(/language-([\w-]+)/);
+        var lang = langMatch ? langMatch[1] : 'text';
+        var pre = wrap.querySelector('pre');
+        var code = pre && pre.querySelector('code');
+        if (!pre || !code) return;
+        var text = code.textContent.replace(/\n+$/, '');
+        var before = wrap.dataset.before;
+        var path   = wrap.dataset.path;
+
+        var fig = document.createElement('figure');
+        fig.className = 'code-block';
+
+        var cap = document.createElement('figcaption');
+        cap.className = 'cb-header';
+        var html = '<span class="cb-dot" aria-hidden="true"></span>' +
+                   '<span class="cb-lang">' + lang + '</span>';
+        if (before) html += '<span class="cb-sep">·</span><span class="cb-before">' + before + '</span>';
+        if (path)   html += '<span class="cb-sep">·</span><span class="cb-path">' + path + '</span>';
+        cap.innerHTML = html;
+
+        var btn = document.createElement('button');
+        btn.className = 'cb-copy';
+        btn.textContent = 'Copy';
+        btn.dataset.copy = text;
+        cap.appendChild(btn);
+
+        pre.classList.add('cb-body');
+        fig.appendChild(cap);
+        fig.appendChild(pre);
+
+        wrap.parentNode.replaceChild(fig, wrap);
+      });
+
+      // ── Decorate .see-also-list anchors with host + arrow ──
+      document.querySelectorAll('.see-also-list a').forEach(function (a) {
+        if (a.querySelector('.sa-label')) return;
+        var label = a.textContent.trim();
+        var host = '';
+        try { host = new URL(a.href).hostname.replace(/^www\./, ''); } catch (e) {}
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.innerHTML =
+          '<span class="sa-label">' + label + '</span>' +
+          '<span class="sa-host">' + host + '</span>' +
+          '<span class="sa-arrow" aria-hidden="true">↗</span>';
+      });
+
+      // ── Copy buttons (works for both hero .cmd-copy and decorated .cb-copy) ──
+      document.querySelectorAll('[data-copy]').forEach(function (btn) {
+        var original = btn.textContent;
+        var isCmd = btn.classList.contains('cmd-copy');
+        var timer = null;
+        btn.addEventListener('click', function () {
+          if (navigator.clipboard) navigator.clipboard.writeText(btn.dataset.copy);
+          btn.classList.add('copied');
+          btn.textContent = isCmd ? 'Copied' : '✓ copied';
+          clearTimeout(timer);
+          timer = setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = original;
+          }, 1400);
+        });
+      });
+
+      // ── Expand-all / collapse-all toggle ──
+      document.querySelectorAll('[data-toggle-all]').forEach(function (link) {
+        var scope = link.closest('section') || document;
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          var items = scope.querySelectorAll('details');
+          var allOpen = Array.prototype.every.call(items, function (d) { return d.open; });
+          items.forEach(function (d) { d.open = !allOpen; });
+          link.textContent = allOpen ? '[ + ] expand all' : '[ − ] collapse all';
+        });
+      });
+
+      // ── "↑ top" footer affordance ──
+      document.querySelectorAll('[data-scroll-top]').forEach(function (s) {
+        s.style.cursor = 'pointer';
+        s.addEventListener('click', function () {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+    </script>
+  </body>
+</html>

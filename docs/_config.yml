@@ -1,0 +1,13 @@
+title: "nix-config(7) — Nix setup for Fedora Kinoite"
+revision: "2026-05-09"
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: null
+
+# Keep private working notes out of the build.
+exclude:
+  - LAPTOP_BOOTSTRAP.md
+  - README.md
+  - "*.backup"

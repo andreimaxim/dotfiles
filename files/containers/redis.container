@@ -1,0 +1,16 @@
+[Unit]
+Description=Redis
+
+[Container]
+ContainerName=redis
+# Pinned from docker.io/library/redis:8.2.3
+Image=docker.io/library/redis@sha256:0908d9af26bf9b985e984a40a5eb82eed229b07a3317eee6843832c3cc3a9619
+Volume=redis-data:/data
+PublishPort=127.0.0.1:6379:6379
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

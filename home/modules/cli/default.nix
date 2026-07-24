@@ -1,0 +1,21 @@
+{
+  imports = [
+    ./bat.nix
+    ./btop.nix
+    ./eza.nix
+    ./fd.nix
+    ./gh.nix
+    ./git.nix
+    ./hunk.nix
+    ./jq.nix
+    ./lazygit.nix
+    ./nix-tools.nix
+    ./postgres.nix
+    ./redis.nix
+    ./ripgrep.nix
+    ./sqruff.nix
+    ./swo.nix
+    ./tig.nix
+    ./tokei.nix
+  ];
+}

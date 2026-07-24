@@ -1,34 +1,28 @@
-# Dotfiles
+# nix-config
 
-Ansible playbooks to provision a fresh Fedora Kinoite machine.
+Full bootstrap walkthrough lives at <https://nix.andreimaxim.com> (sources
+under `docs/`).
 
-## Quick Start
-
-On a fresh Fedora Kinoite installation, open a terminal and run:
+## Common commands
 
 ```bash
-sudo rpm-ostree install --apply-live git ansible
+# Apply the currently committed configuration.
+home-manager switch
+
+# Update flake pins and apply.
+nix flake update && home-manager switch
+
+# Format every tracked Nix file with nixfmt (RFC 166).
+nix fmt
+
+# Scaffold a new project from one of the templates.
+nix flake init -t ~/.config/home-manager#ruby
+nix flake init -t ~/.config/home-manager#rails
 ```
 
-Then clone the repo:
+
+After the initial setup:
 
 ```bash
-git clone https://github.com/andreimaxim/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles/ansible
-```
-
-There are two main steps:
-
-Installing the initial base backages:
-
-```bash
-ansible-playbook -K playbooks/packages.yml
-```
-
-A reboot is required.
-
-Then the rest of the local config, apps and packages:
-
-```bash
-ansible-playbook -K playbooks/tools.yml
+npm install -g ccusage @andreimaxim/git-xor @herb-tools/language-server
 ```

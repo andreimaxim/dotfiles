@@ -1,0 +1,16 @@
+[Unit]
+Description=Memcached
+
+[Container]
+ContainerName=memcached
+# Pinned from docker.io/library/memcached:1.6.41
+Image=docker.io/library/memcached@sha256:f7a252e7ba3fbbe9672c483354c5081d02b780122c3bb97bd311d5662b54d0ad
+PublishPort=127.0.0.1:11211:11211
+Exec=-m 512
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

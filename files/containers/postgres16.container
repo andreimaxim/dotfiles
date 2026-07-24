@@ -1,0 +1,20 @@
+[Unit]
+Description=PostgreSQL 16
+
+[Container]
+ContainerName=postgres16
+# Pinned from docker.io/library/postgres:16.13
+Image=docker.io/library/postgres@sha256:972eeb4e0a5fee4c3046cf868896719227e845aa9e38ff79a353efb3b2b2c10a
+Environment=POSTGRES_HOST_AUTH_METHOD=trust
+Environment=POSTGRES_USER=andrei
+Volume=postgres16-data:/var/lib/postgresql/data
+PublishPort=127.0.0.1:5432:5432
+ShmSize=1g
+Exec=-c max_locks_per_transaction=1024 -c maintenance_work_mem=1GB -c autovacuum_work_mem=256MB -c max_parallel_maintenance_workers=4 -c max_wal_size=16GB -c checkpoint_timeout=30min -c wal_compression=lz4
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

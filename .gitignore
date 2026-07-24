@@ -1,0 +1,8 @@
+result
+result-*
+.direnv/
+docs/.jekyll-cache/
+docs/_site/
+
+# Private working notes (kept on disk, not pushed):
+docs/LAPTOP_BOOTSTRAP.md

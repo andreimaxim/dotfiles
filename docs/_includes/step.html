@@ -1,0 +1,34 @@
+{%- comment -%}
+  Renders one bootstrap step — number is auto-generated from the .step CSS counter.
+
+  Usage:
+    {% capture body %}
+    Markdown content with fenced code blocks; IALs like
+    {: data-before="Before" data-path="/etc/foo.conf"}
+    decorate the code-block header.
+    {% endcapture %}
+
+    {% include step.html
+       id="prepare"
+       title="Prepare a transient root"
+       summary="Nix needs to write to /nix, but Kinoite's composefs root is read-only."
+       body=body %}
+{%- endcomment -%}
+<li class="step"{% if include.id %} id="{{ include.id }}"{% endif %}>
+  <details>
+    <summary class="step-header">
+      <div>
+        <h3 class="step-title">{{ include.title | escape }}</h3>
+        <div class="step-summary">{{ include.summary | escape }}</div>
+      </div>
+      <div class="step-toggle">
+        <span class="label-closed">Show</span>
+        <span class="label-open">Hide</span>
+        <span class="chev" aria-hidden="true">›</span>
+      </div>
+    </summary>
+    <div class="step-body">
+      {{ include.body | markdownify }}
+    </div>
+  </details>
+</li>

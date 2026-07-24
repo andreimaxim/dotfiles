@@ -1,0 +1,21 @@
+# Nix / direnv
+/.direnv/
+/result
+/result-*
+
+# Bundler (project-scoped install dir, set by flake.nix)
+/vendor/bundle/
+/.bundle/
+
+# Editor tooling (project ruby-lsp GEM_HOME + its composed bundle, see .envrc)
+/.gem/
+/.ruby-lsp/
+
+# Environment
+.env
+.env.local
+
+# Ruby debris
+*.gem
+.byebug_history
+/coverage/
