@@ -11,7 +11,7 @@ curl --proto '=https' --tlsv1.2 --silent --show-error --fail --location https://
   MISE_VERSION=v2026.7.12 sh
 export PATH="$HOME/.local/bin:$PATH"
 mkdir -p ~/.config
-git clone https://github.com/andreimaxim/nix-config.git ~/.config/mise
+git clone https://github.com/andreimaxim/dotfiles.git ~/.config/mise
 cd ~/.config/mise
 mise bootstrap --dry-run
 ```
