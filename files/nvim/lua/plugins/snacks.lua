@@ -20,6 +20,10 @@ return {
           sort_empty = true,
         },
         sources = {
+          files = {
+            hidden = true,
+            ignored = true,
+          },
           explorer = {
             layout = {
               layout = {
