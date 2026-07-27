@@ -71,7 +71,6 @@ tree-sitter = "latest"
 "apt:poppler-utils" = "latest"
 "apt:luarocks" = "latest"
 "apt:unzip" = "latest"
-"apt:wl-clipboard" = "latest"
 "apt:procps" = "latest"
 "apt:bubblewrap" = "latest"
 "apt:socat" = "latest"
@@ -105,9 +104,13 @@ tree-sitter = "latest"
 "~/.claude/skills" = { source = "files/agents/skills", mode = "symlink-each" }
 
 [tasks.bootstrap]
-description = "Enable native database services and create the local PostgreSQL role"
+description = "Install WSL clipboard support and configure native database services"
 run = '''
 set -eu
+
+if ! dpkg-query -W -f='${Status}' wl-clipboard 2>/dev/null | grep -Fxq 'install ok installed'; then
+  sudo apt-get install -y --no-install-recommends wl-clipboard
+fi
 
 remove_legacy_nix_link() {
   path=$1
