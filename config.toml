@@ -27,6 +27,7 @@ lazygit = "latest"
 starship = "latest"
 zoxide = "latest"
 github-cli = "latest"
+actionlint = "latest"
 tokei = "latest"
 tree-sitter = "latest"
 "github:quarylabs/sqruff" = { version = "latest", asset_pattern = "sqruff-linux-x86_64-musl.tar.gz" }
@@ -48,9 +49,9 @@ tree-sitter = "latest"
 "apt:jq" = "latest"
 "apt:btop" = "latest"
 "apt:tig" = "latest"
-"apt:postgresql" = "latest"
+"apt:docker.io" = "latest"
+"apt:docker-compose-v2" = "latest"
 "apt:postgresql-client" = "latest"
-"apt:redis-server" = "latest"
 "apt:redis-tools" = "latest"
 "apt:libssl-dev" = "latest"
 "apt:libyaml-dev" = "latest"
@@ -104,7 +105,7 @@ tree-sitter = "latest"
 "~/.claude/skills" = { source = "files/agents/skills", mode = "symlink-each" }
 
 [tasks.bootstrap]
-description = "Install WSL clipboard support and configure native database services"
+description = "Install WSL clipboard support and run database containers"
 run = '''
 set -eu
 
@@ -153,8 +154,37 @@ Then run `wsl.exe --shutdown` from Windows and reopen Ubuntu.
 EOF
   exit 1
 fi
-sudo systemctl enable --now postgresql.service redis-server.service
-if ! sudo -u postgres psql -X -Atqc 'SELECT rolname FROM pg_roles' | grep -Fxq -- "$USER"; then
-  sudo -u postgres createuser --superuser -- "$USER"
+
+sudo systemctl enable --now docker.service
+if ! id -nG "$USER" | tr ' ' '\n' | grep -Fxq docker; then
+  sudo usermod -aG docker "$USER"
+fi
+
+if ! sudo docker container inspect postgres16 >/dev/null 2>&1; then
+  sudo docker run --detach \
+    --restart always \
+    --name postgres16 \
+    --env POSTGRES_HOST_AUTH_METHOD=trust \
+    --env POSTGRES_USER="$USER" \
+    --volume postgres16-data:/var/lib/postgresql/data \
+    --publish 127.0.0.1:5432:5432 \
+    --shm-size 1g \
+    docker.io/library/postgres@sha256:972eeb4e0a5fee4c3046cf868896719227e845aa9e38ff79a353efb3b2b2c10a \
+    -c max_locks_per_transaction=1024 \
+    -c maintenance_work_mem=1GB \
+    -c autovacuum_work_mem=256MB \
+    -c max_parallel_maintenance_workers=4 \
+    -c max_wal_size=16GB \
+    -c checkpoint_timeout=30min \
+    -c wal_compression=lz4
+fi
+
+if ! sudo docker container inspect redis >/dev/null 2>&1; then
+  sudo docker run --detach \
+    --restart always \
+    --name redis \
+    --volume redis-data:/data \
+    --publish 127.0.0.1:6379:6379 \
+    docker.io/library/redis@sha256:0908d9af26bf9b985e984a40a5eb82eed229b07a3317eee6843832c3cc3a9619
 fi
 '''

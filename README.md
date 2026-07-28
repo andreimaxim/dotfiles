@@ -27,11 +27,15 @@ After making that backup, apply the migration:
 mise bootstrap --yes --force-dotfiles
 ```
 
-The bootstrap enables native Ubuntu PostgreSQL and Redis and creates a local
-PostgreSQL superuser named after `$USER`. WezTerm runs on Windows; its preserved
-configuration is `files/windows/wezterm.lua` and is intentionally not deployed.
-Ubuntu 26.04 currently ships Redis 8.0.x, so the native package is not pinned to
-the previous Redis 7 major.
+The bootstrap installs Docker and Docker Compose, then creates pinned PostgreSQL
+16 and Redis 8 containers directly with `docker run`. Docker Compose remains
+available for projects that need it. Both services listen only on localhost,
+store their data in named Docker volumes, and start automatically with Docker.
+Native `psql` and `redis-cli` clients are also installed. Log out and back in
+after the first bootstrap to use Docker without `sudo`.
+
+WezTerm runs on Windows; its preserved configuration is
+`files/windows/wezterm.lua` and is intentionally not deployed.
 
 After verifying the new shell and services, uninstall the previous Determinate
 Nix installation with `sudo /nix/nix-installer uninstall`. Preserve any

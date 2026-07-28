@@ -8,7 +8,8 @@ bootstrap and apt.
   explicit. Windows-only configuration belongs under `files/windows/` and must
   not be deployed into WSL.
 - Projects use only `.ruby-version` and `.env`.
-- PostgreSQL and Redis are native systemd services.
+- PostgreSQL and Redis run in Docker containers; native client tools remain
+  installed.
 - Keep changes focused and do not introduce alternative machine managers.
 
 Parse TOML/JSON with Python stdlib and validate with mise v2026.7.12. Prefer
