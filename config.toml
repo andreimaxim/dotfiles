@@ -49,6 +49,7 @@ tree-sitter = "latest"
 "apt:jq" = "latest"
 "apt:btop" = "latest"
 "apt:tig" = "latest"
+"apt:tmux" = "latest"
 "apt:docker.io" = "latest"
 "apt:docker-compose-v2" = "latest"
 "apt:postgresql-client" = "latest"
@@ -95,6 +96,7 @@ tree-sitter = "latest"
 "~/.config/lazygit/config.yml" = { source = "files/lazygit/config.yml", mode = "symlink" }
 "~/.config/sqruff/.sqruff" = { source = "files/sqruff/sqruff", mode = "symlink" }
 "~/.config/tig/config" = { source = "files/tig/config", mode = "symlink" }
+"~/.config/tmux/tmux.conf" = { source = "files/tmux/tmux.conf", mode = "symlink" }
 "~/.config/nvim" = { source = "files/nvim", mode = "symlink-each" }
 "~/.local/bin/onepassword-ssh" = { source = "files/bin/onepassword-ssh", mode = "symlink" }
 "~/.local/bin/onepassword-ssh-sign" = { source = "files/bin/onepassword-ssh-sign", mode = "symlink" }
@@ -123,10 +125,17 @@ remove_legacy_nix_link() {
 }
 
 # Remove files previously deployed by Home Manager but intentionally absent
-# from the mise setup. Only /nix/store symlinks are touched.
+# from the mise setup. Only /nix/store symlinks and empty legacy directories
+# are removed.
 for path in \
+  "$HOME/.agents/skills/domain-language/references/examples.md" \
+  "$HOME/.agents/skills/domain-language/SKILL.md" \
   "$HOME/.agents/skills/nixify-project/SKILL.md" \
+  "$HOME/.agents/skills/shape/SKILL.md" \
+  "$HOME/.claude/skills/domain-language/references/examples.md" \
+  "$HOME/.claude/skills/domain-language/SKILL.md" \
   "$HOME/.claude/skills/nixify-project/SKILL.md" \
+  "$HOME/.claude/skills/shape/SKILL.md" \
   "$HOME/.config/containers/containers.conf" \
   "$HOME/.config/containers/systemd/memcached.container" \
   "$HOME/.config/containers/systemd/mysql57.container" \
@@ -141,6 +150,17 @@ for path in \
   "$HOME/.config/zed/settings.json"
 do
   remove_legacy_nix_link "$path"
+done
+
+for path in \
+  "$HOME/.agents/skills/domain-language/references" \
+  "$HOME/.agents/skills/domain-language" \
+  "$HOME/.agents/skills/shape" \
+  "$HOME/.claude/skills/domain-language/references" \
+  "$HOME/.claude/skills/domain-language" \
+  "$HOME/.claude/skills/shape"
+do
+  rmdir -- "$path" 2>/dev/null || true
 done
 
 if [ "$(cat /proc/1/comm 2>/dev/null || true)" != systemd ]; then
