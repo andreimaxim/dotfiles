@@ -125,8 +125,15 @@ unconfirmed hypotheses.
 
 Keep the answers in the conversation. Do not create or save a file unless the user asks.
 
-Scale the answers to the work. For a small fix, one sentence per question may be enough. Use this
-format:
+Scale the answers to the work. For a small fix, one sentence per question may be enough.
+
+Write the answers so each sentence can be confirmed or corrected on its own: name the actor, use
+active voice and concrete verbs, state one main idea per sentence, make conditions and referents
+explicit, and use one consistent name for each user, action, and object across both answers. Keep
+the user's domain terms, and keep hypothesis and open-question labels—clarity means resolving
+ambiguity, not hiding it.
+
+Use this format:
 
 ```markdown
 ## Why are we doing this?
