@@ -13,6 +13,8 @@
       scrollbar_thumb = "#2f334d",
     }
 
+    -- WezTerm pane management is disabled; tmux owns panes inside WSL.
+    --[[
     local prefix_timeout_ms = 250
     local pending_prefix = {}
 
@@ -58,14 +60,25 @@
         pane
       )
     end
+    ]]
 
     config.keys = {
+      -- WezTerm's C-a prefix is disabled so C-a passes through to the shell.
+      --[[
       -- C-a starts a short prefix window; if no prefix key is pressed, pass C-a
       -- through to readline so it moves to the beginning of the line.
       {
         key = "a",
         mods = "CTRL",
         action = wezterm.action_callback(enter_prefix),
+      },
+      ]]
+
+      -- Send Shift+Enter as CSI-u so Amp can distinguish it from Enter.
+      {
+        key = "Enter",
+        mods = "SHIFT",
+        action = act.SendString("\x1b[13;2u"),
       },
 
       { key = "F11", action = wezterm.action.ToggleFullScreen },
@@ -84,6 +97,8 @@
       },
     }
 
+    -- WezTerm pane key tables are disabled in favor of tmux.
+    --[[
     config.key_tables = {
       prefix = {
         { key = "a", mods = "CTRL", action = prefix_action(act.SendKey({ key = "a", mods = "CTRL" })) },
@@ -122,6 +137,7 @@
         { key = "Enter", action = "PopKeyTable" },
       },
     }
+    ]]
 
     config.window_decorations = "TITLE|RESIZE"
     config.enable_tab_bar = true
