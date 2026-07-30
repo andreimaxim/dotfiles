@@ -1,39 +1,20 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "agentPushNotifEnabled": false,
-  "alwaysThinkingEnabled": true,
+  "cleanupPeriodDays": 7,
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "claude-opus-5[1m]",
+    "DISABLE_ERROR_REPORTING": "1",
+    "DISABLE_FEEDBACK_COMMAND": "1"
+  },
   "attribution": {
     "commit": "",
     "pr": ""
   },
-  "autoCompactEnabled": false,
-  "autoMemoryEnabled": false,
-  "autoUpdatesChannel": "latest",
-  "autoUploadSessions": false,
-  "awaySummaryEnabled": false,
-  "channelsEnabled": false,
-  "claudeInChromeDefaultEnabled": false,
-  "cleanupPeriodDays": 7,
-  "disableWorkflows": true,
-  "effortLevel": "xhigh",
-  "enabledPlugins": {},
-  "env": {
-    "CLAUDE_CODE_SUBAGENT_MODEL": "claude-fable-5[1m]",
-    "DISABLE_AUTOUPDATER": "1",
-    "DISABLE_ERROR_REPORTING": "1",
-    "DISABLE_FEEDBACK_COMMAND": "1"
-  },
-  "feedbackSurveyRate": 0,
-  "fileCheckpointingEnabled": false,
-  "inputNeededNotifEnabled": false,
-  "model": "claude-fable-5[1m]",
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "deny": [
       "AskUserQuestion",
       "ToolSearch",
       "ScheduleWakeup",
-      "PushNotification",
       "NotebookEdit",
       "Monitor",
       "RemoteTrigger",
@@ -52,14 +33,31 @@
       "ExitPlanMode",
       "EnterWorktree",
       "ExitWorktree"
-    ]
+    ],
+    "defaultMode": "bypassPermissions"
   },
+  "model": "opus[1m]",
+  "disableWorkflows": true,
+  "enabledPlugins": {},
+  "skipWebFetchPreflight": true,
+  "feedbackSurveyRate": 0,
+  "spinnerTipsEnabled": false,
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
   "promptSuggestionEnabled": false,
-  "remoteControlAtStartup": false,
+  "awaySummaryEnabled": false,
+  "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
+  "channelsEnabled": false,
+  "autoMemoryEnabled": false,
   "showThinkingSummaries": true,
   "skipDangerousModePermissionPrompt": true,
-  "skipWebFetchPreflight": true,
-  "spinnerTipsEnabled": false,
-  "tui": "fullscreen",
-  "verbose": true
+  "verbose": true,
+  "autoCompactEnabled": false,
+  "fileCheckpointingEnabled": false,
+  "remoteControlAtStartup": true,
+  "autoUploadSessions": false,
+  "inputNeededNotifEnabled": false,
+  "agentPushNotifEnabled": false,
+  "claudeInChromeDefaultEnabled": false
 }
