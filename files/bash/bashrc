@@ -25,13 +25,44 @@ alias lta='lt -a'
 alias ff="fzf --preview 'bat --style=numbers --color=always {}'"
 alias cd=z ..='cd ..' ...='cd ../..' ....='cd ../../..'
 alias lzg=lazygit gs='git status' n=nvim vi=nvim vim=nvim
+alias t='tmux attach-session || tmux new-session -s Work'
 alias r=bin/rails rs='bin/rails server' rc='bin/rails console' rt='bin/rails test'
 alias rdb='bin/rails dbconsole' rdm='bin/rails db:migrate' rdr='bin/rails db:rollback'
 alias rgc='bin/rails g controller' rgj='bin/rails g job' rgm='bin/rails g model' rgs='bin/rails g script'
 alias ccx='claude --system-prompt-file "$HOME/.claude/SYSTEM.md"'
 if command -v docker >/dev/null 2>&1; then alias d=docker; fi
 
+# Tmux Dev Layout: Amp on the left (40%), Neovim on the right (60%).
+tdl() {
+  if [ -z "${TMUX:-}" ]; then
+    printf 'tdl must be run inside tmux (start it with `t`).\n' >&2
+    return 1
+  fi
+
+  if [ "$(tmux display-message -p -t "$TMUX_PANE" '#{window_panes}')" -ne 1 ]; then
+    printf 'tdl requires an empty one-pane window.\n' >&2
+    return 1
+  fi
+
+  tmux split-window -h -l 60% -c "$PWD" 'exec nvim .' || return
+  tmux select-pane -t "$TMUX_PANE"
+  command amp
+}
+
 eval "$(mise activate bash)"
 eval "$(fzf --bash)"
 eval "$(zoxide init bash)"
 eval "$(starship init bash)"
+
+# Tell WezTerm the current WSL directory so new tabs can inherit it instead of
+# inferring the Windows working directory of wsl.exe.
+__wezterm_set_cwd() {
+  if [ "${TERM_PROGRAM:-}" = "WezTerm" ]; then
+    if [ -n "${TMUX:-}" ]; then
+      printf '\033Ptmux;\033\033]7;file://%s%s\007\033\\' "$HOSTNAME" "$PWD"
+    else
+      printf '\033]7;file://%s%s\007' "$HOSTNAME" "$PWD"
+    fi
+  fi
+}
+PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }__wezterm_set_cwd"
