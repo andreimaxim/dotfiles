@@ -45,6 +45,14 @@ work before removing the old `~/.config/home-manager` checkout.
 For updates, pull the repository, review `mise bootstrap --dry-run`, then run
 `mise bootstrap --yes`. Use `mise install` to resolve and install tool updates.
 
+## Claude Code
+
+Bootstrap links the tracked settings, replacement system prompt, Finder, Oracle,
+Librarian, and 11 personal skills into `~/.claude/`. It leaves credentials,
+sessions, unrelated skills, and other Claude files alone. Back up an existing
+`~/.claude/settings.json` before replacing it; the normal dotfile conflict checks
+apply. Claude Code itself must already be installed and authenticated.
+
 ## Projects
 
 Projects use only `.ruby-version` and `.env`. Native mise activation discovers
