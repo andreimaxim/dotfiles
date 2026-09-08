@@ -5,11 +5,12 @@ bootstrap and apt.
 
 - `config.toml` is the global mise config for a checkout at `~/.config/mise`.
 - Literal deployable dotfiles live under `files/`; keep `[dotfiles]` sources
-  explicit. Windows-only configuration belongs under `files/windows/` and must
+  explicit. `files/git/config` is a one-time seed rather than a deployed
+  symlink. Windows-only configuration belongs under `files/windows/` and must
   not be deployed into WSL.
 - Projects use only `.ruby-version` and `.env`.
-- PostgreSQL and Redis run in Docker containers; native client tools remain
-  installed.
+- Docker and native database clients are installed globally; projects own their
+  PostgreSQL, Redis, and other service containers.
 - Keep changes focused and do not introduce alternative machine managers.
 
 Parse TOML/JSON with Python stdlib and validate with mise v2026.7.12. Prefer

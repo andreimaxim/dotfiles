@@ -18,28 +18,29 @@ mise bootstrap --dry-run
 
 `--force-dotfiles` does not create backups. Before the first apply, preserve
 anything irreplaceable; preferably export the WSL distribution from PowerShell
-after running `wsl --shutdown`. The bootstrap only removes legacy Home Manager
-files when they are symlinks into `/nix/store`.
+after running `wsl --shutdown`.
 
-After making that backup, apply the migration:
+After making that backup, apply the bootstrap:
 
 ```sh
 mise bootstrap --yes --force-dotfiles
 ```
 
-The bootstrap installs Docker and Docker Compose, then creates pinned PostgreSQL
-16 and Redis 8 containers directly with `docker run`. Docker Compose remains
-available for projects that need it. Both services listen only on localhost,
-store their data in named Docker volumes, and start automatically with Docker.
-Native `psql` and `redis-cli` clients are also installed. Log out and back in
-after the first bootstrap to use Docker without `sudo`.
+The bootstrap installs and enables Docker and Docker Compose. Native `psql` and
+`redis-cli` clients are also installed, but projects own their database and
+cache containers. Log out and back in after the first bootstrap to use Docker
+without `sudo`.
+
+The tracked Git configuration seeds `~/.config/git/config` only when needed.
+Bootstrap also converts the symlink created by older versions into a regular
+file. Later machine-specific edits remain local and are not overwritten.
 
 WezTerm runs on Windows; its preserved configuration is
 `files/windows/wezterm.lua` and is intentionally not deployed.
 
-After verifying the new shell and services, uninstall the previous Determinate
-Nix installation with `sudo /nix/nix-installer uninstall`. Preserve any
-uncommitted work before removing the old `~/.config/home-manager` checkout.
+After verifying the new shell and Docker, uninstall the previous Determinate Nix
+installation with `sudo /nix/nix-installer uninstall`. Preserve any uncommitted
+work before removing the old `~/.config/home-manager` checkout.
 
 For updates, pull the repository, review `mise bootstrap --dry-run`, then run
 `mise bootstrap --yes`. Use `mise install` to resolve and install tool updates.
@@ -60,5 +61,7 @@ Unlike direnv, this convention has no per-project approval prompt. Mise parses
 still set security-sensitive variables or select a runtime. Review project
 files before entering and do not put secrets in Git.
 
-Dotfiles are literal tracked files under `files/`; rollback is a normal Git
-checkout followed by a reviewed bootstrap apply.
+Deployed dotfiles are literal tracked files under `files/`; rollback is a normal
+Git checkout followed by a reviewed bootstrap apply. Git config is the exception:
+bootstrap seeds it once so local credentials and machine-specific settings stay
+outside the repository.

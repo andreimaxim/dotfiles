@@ -29,25 +29,7 @@ alias t='tmux attach-session || tmux new-session -s Work'
 alias r=bin/rails rs='bin/rails server' rc='bin/rails console' rt='bin/rails test'
 alias rdb='bin/rails dbconsole' rdm='bin/rails db:migrate' rdr='bin/rails db:rollback'
 alias rgc='bin/rails g controller' rgj='bin/rails g job' rgm='bin/rails g model' rgs='bin/rails g script'
-alias ccx='claude --system-prompt-file "$HOME/.claude/SYSTEM.md"'
 if command -v docker >/dev/null 2>&1; then alias d=docker; fi
-
-# Tmux Dev Layout: Amp on the left (40%), Neovim on the right (60%).
-tdl() {
-  if [ -z "${TMUX:-}" ]; then
-    printf 'tdl must be run inside tmux (start it with `t`).\n' >&2
-    return 1
-  fi
-
-  if [ "$(tmux display-message -p -t "$TMUX_PANE" '#{window_panes}')" -ne 1 ]; then
-    printf 'tdl requires an empty one-pane window.\n' >&2
-    return 1
-  fi
-
-  tmux split-window -h -l 60% -c "$PWD" 'exec nvim .' || return
-  tmux select-pane -t "$TMUX_PANE"
-  command amp
-}
 
 eval "$(mise activate bash)"
 eval "$(fzf --bash)"
@@ -66,3 +48,12 @@ __wezterm_set_cwd() {
   fi
 }
 PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }__wezterm_set_cwd"
+
+# Tell Windows Terminal the current WSL directory so duplicated tabs and panes
+# can inherit it.
+__windows_terminal_set_cwd() {
+  if [ -n "${WT_SESSION:-}" ]; then
+    printf '\033]9;9;%s\033\\' "$(wslpath -w "$PWD")"
+  fi
+}
+PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }__windows_terminal_set_cwd"
