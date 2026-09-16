@@ -33,6 +33,8 @@ tree-sitter = "latest"
 tmux = "3.7b"
 "github:quarylabs/sqruff" = { version = "latest", asset_pattern = "sqruff-linux-x86_64-musl.tar.gz" }
 go = "latest"
+fnox = "latest"
+age = "latest"
 
 [bootstrap.packages]
 "apt:git" = "latest"
