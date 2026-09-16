@@ -110,7 +110,7 @@ clear; leave file inventories, speculative signatures, and detailed tasks to imp
 
 The request authorizes the activity. A shaping-only request ends with the shape, not implementation;
 authorization for a prototype does not authorize the feature. When implementation is requested and
-consequential choices are settled, continue into `building` without redundant confirmation.
+consequential choices are settled, continue into `implementing` without redundant confirmation.
 
 **Agreement can settle the next step without fixing the final design.** Distinguish binding
 requirements from working choices and experiments by their intent and context. Preserve that

@@ -99,15 +99,10 @@ age = "latest"
 "~/.claude/agents/finder.md" = { source = "files/claude/agents/finder.md", mode = "symlink" }
 "~/.claude/agents/oracle.md" = { source = "files/claude/agents/oracle.md", mode = "symlink" }
 "~/.claude/agents/librarian.md" = { source = "files/claude/agents/librarian.md", mode = "symlink" }
-"~/.claude/skills/building" = { source = "files/claude/skills/building", mode = "symlink" }
-"~/.claude/skills/checking-work-against-jira" = { source = "files/claude/skills/checking-work-against-jira", mode = "symlink" }
+"~/.claude/skills/implementing" = { source = "files/claude/skills/implementing", mode = "symlink" }
 "~/.claude/skills/naming-things" = { source = "files/claude/skills/naming-things", mode = "symlink" }
-"~/.claude/skills/preparing-tickets-for-shaping" = { source = "files/claude/skills/preparing-tickets-for-shaping", mode = "symlink" }
-"~/.claude/skills/reviewing-code" = { source = "files/claude/skills/reviewing-code", mode = "symlink" }
 "~/.claude/skills/shaping" = { source = "files/claude/skills/shaping", mode = "symlink" }
-"~/.claude/skills/shaping-work-from-jira" = { source = "files/claude/skills/shaping-work-from-jira", mode = "symlink" }
 "~/.claude/skills/understanding-code" = { source = "files/claude/skills/understanding-code", mode = "symlink" }
-"~/.claude/skills/using-atlassian" = { source = "files/claude/skills/using-atlassian", mode = "symlink" }
 "~/.claude/skills/using-papertrail" = { source = "files/claude/skills/using-papertrail", mode = "symlink" }
 "~/.claude/skills/using-rollbar" = { source = "files/claude/skills/using-rollbar", mode = "symlink" }
 "~/.local/bin/onepassword-ssh" = { source = "files/bin/onepassword-ssh", mode = "symlink" }

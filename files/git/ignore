@@ -1,1 +1,3 @@
 # Global ignores intentionally empty.
+
+**/.claude/settings.local.json
