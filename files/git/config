@@ -144,3 +144,5 @@
 	signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBLsCFcEHXqWkgD65hJ9y4gARfqWT0FYyVOLhgUxl45c"
 [credential "https://ampcode.com"]
 	helper = !amp git-credential-helper
+[credential "https://git.heroku.com"]
+	helper = !heroku git:credentials
