@@ -8,6 +8,11 @@ export HISTFILESIZE=32768
 export EDITOR=nvim
 export VISUAL=nvim
 
+# Windows Terminal supports true color but does not always advertise it in WSL.
+if [ -n "${WT_SESSION:-}" ] && [ -z "${COLORTERM:-}" ]; then
+  export COLORTERM=truecolor
+fi
+
 shopt -s histappend extglob globstar checkjobs
 
 if [ -r "$HOME/.config/op/plugins.sh" ]; then
