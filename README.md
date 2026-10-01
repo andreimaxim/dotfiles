@@ -45,6 +45,34 @@ work before removing the old `~/.config/home-manager` checkout.
 For updates, pull the repository, review `mise bootstrap --dry-run`, then run
 `mise bootstrap --yes`. Use `mise install` to resolve and install tool updates.
 
+## Amp
+
+Bootstrap deploys the Claude Code implementer plugin into
+`~/.config/amp/plugins/claude-implementer/`. It copies the entrypoint because Amp
+does not discover symlinked entrypoints, and links the bundled skill. The plugin
+uses the Claude Agent SDK; Amp's Bun runtime caches the pinned SDK on first use.
+It runs the existing `claude` binary with its login and user/project/local settings.
+Claude Code 2.1.285 or newer must already be installed and authenticated.
+
+After planning in Amp, say "ask Claude to implement". Claude runs on Opus 5.5
+with high effort in the same directory. Amp shows progress through bounded waits,
+relays Claude's reply unchanged, and forwards your response to the same session.
+Questions, trade-offs, blockers, and reports are all ordinary replies: Amp does
+not interpret them, fix blockers, continue automatically, or invoke a reviewer.
+Ask Amp separately if you want its review or help.
+
+Only one Claude turn can run through the plugin at a time. Cancelling the Amp
+turn or unloading the plugin stops the SDK worker without undoing edits. Claude
+persists the conversation; retain the returned session ID to resume after reload.
+Progress is held in memory until the next turn or reload. This is a machine-local
+plugin, not a global Amp plugin; do not install it in orbs.
+
+Run the relay tests without installing dependencies or starting Claude:
+
+```sh
+node --test files/amp/plugins/claude-implementer/index.test.ts
+```
+
 ## Claude Code
 
 Bootstrap links the tracked settings, replacement system prompt, Finder, Oracle,

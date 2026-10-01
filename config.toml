@@ -83,6 +83,9 @@ age = "latest"
 "~/.inputrc" = { source = "files/bash/inputrc", mode = "symlink" }
 "~/.npmrc" = { source = "files/npm/npmrc", mode = "symlink" }
 "~/.default-gems" = { source = "files/ruby/default-gems", mode = "symlink" }
+# Amp discovers only real plugin entrypoints, so copy index.ts.
+"~/.config/amp/plugins/claude-implementer/index.ts" = { source = "files/amp/plugins/claude-implementer/index.ts", mode = "copy" }
+"~/.config/amp/plugins/claude-implementer/skills/implementing/SKILL.md" = { source = "files/amp/plugins/claude-implementer/skills/implementing/SKILL.md", mode = "symlink" }
 "~/.config/bat/config" = { source = "files/bat/config", mode = "symlink" }
 "~/.config/btop/btop.conf" = { source = "files/btop/btop.conf", mode = "symlink" }
 "~/.config/btop/themes/catppuccin_mocha.theme" = { source = "files/btop/catppuccin_mocha.theme", mode = "symlink" }
