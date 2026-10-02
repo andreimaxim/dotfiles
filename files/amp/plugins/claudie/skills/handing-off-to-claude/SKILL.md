@@ -2,8 +2,8 @@
 name: handing-off-to-claude
 description: Delegates implementation to Opus or independent, read-only consultations to Fable through Claude Code. Use when the user asks Claude to implement, review, give a second opinion, or act as an oracle, and when resolving questions within that handoff. For local checkouts, not orbs.
 builtin-tools:
-  - claude_send
-  - claude_wait
+  - claude_implement
+  - claude_consult
 ---
 
 # Handing off to Claude
@@ -16,7 +16,7 @@ Claude cannot see this Amp conversation. Prepare a brief of the agreed outcome, 
 and decisions, distinguishing what is settled from what remains open. Preserve the shaping
 already done with the user rather than reopening it.
 
-Use `implement` for agreed changes and `consult` for independent, read-only advice. A consultation
+Use implementation for agreed changes and consultation for independent, read-only advice. A consultation
 does not authorize implementation. Start a fresh session for a different task or an independent
 consultation; keep continuations of the same task in its existing session.
 

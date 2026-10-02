@@ -1,6 +1,6 @@
 import { execFile, spawn } from 'node:child_process'
-import { randomUUID } from 'node:crypto'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { createHash, randomUUID } from 'node:crypto'
+import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -85,19 +85,10 @@ const roleInstructions = {
 	].join(' '),
 }
 
-type Update =
-	| { type: 'tool'; name: string }
-	| { type: 'tool_progress'; name: string; elapsed_seconds: number }
-	| { type: 'summary'; text: string }
-	| { type: 'started'; model: string }
-
 type Run = {
-	sessionID: string
-	mode: 'implement' | 'consult'
-	state: 'running' | 'replied' | 'failed' | 'cancelled'
-	startedAt: number
+	threadID: ThreadID
 	abort: AbortController
-	updates: Update[]
+	summaries: string[]
 	result?: SDKResultMessage
 	error?: string
 	stderr: string
@@ -107,25 +98,43 @@ type Run = {
 export default async function (amp: PluginAPI) {
 	if (!amp.system.workspaceRoot) return
 	const cwd = amp.helpers.filePathFromURI(amp.system.workspaceRoot)
-	// Retain the latest submitted turn per Amp thread; Claude persists the conversation.
-	const runs = new Map<ThreadID, Run>()
 	let active: Run | undefined
 	let disposed = false
 
-	const snapshot = (run: Run, cursor = 0) =>
-		JSON.stringify({
-			session_id: run.sessionID,
-			mode: run.mode,
-			cwd,
-			state: run.state,
-			elapsed_seconds: Math.floor((Date.now() - run.startedAt) / 1000),
-			cancel_requested: run.abort.signal.aborted,
-			cursor: run.updates.length,
-			updates: run.updates.slice(cursor),
-			result: run.result,
-			error: run.error,
-			stderr: run.stderr || undefined,
-		})
+	const formatReply = (run: Run) => {
+		const sections: string[] = []
+		if (run.result?.subtype === 'success' && !run.result.is_error) {
+			sections.push(`## Claude Code reply\n\n${run.result.result}`)
+		}
+		if (run.summaries.length) {
+			sections.push(`## Claude Code work summaries\n\n${run.summaries.join('\n\n')}`)
+		}
+		const diagnostics: string[] = []
+		if (run.abort.signal.aborted) diagnostics.push('Claude Code was cancelled. Completed edits remain.')
+		else if (run.error || !run.result || run.result.is_error || run.result.subtype !== 'success') {
+			diagnostics.push('Claude Code failed.')
+		}
+		if (run.error) diagnostics.push(run.error)
+		if (run.result?.subtype === 'success' && run.result.is_error) {
+			if (run.result.result) diagnostics.push(run.result.result)
+			else {
+				if (run.result.api_error_status != null) diagnostics.push(`API status: ${run.result.api_error_status}`)
+				if (run.result.terminal_reason) diagnostics.push(`SDK stopped: ${run.result.terminal_reason}`)
+			}
+		} else if (run.result && run.result.subtype !== 'success') {
+			diagnostics.push(`SDK stopped: ${run.result.subtype}`, ...run.result.errors)
+		}
+		if (diagnostics.length) sections.push(`## Relay diagnostics\n\n${diagnostics.join('\n\n')}`)
+		if (run.result?.permission_denials.length) {
+			sections.push(
+				`## Permission denials\n\n${run.result.permission_denials
+					.map((denial) => `${denial.tool_name}\n\n${JSON.stringify(denial.tool_input, null, 2)}`)
+					.join('\n\n')}`,
+			)
+		}
+		if (run.stderr) sections.push(`## Claude Code stderr\n\n${run.stderr}`)
+		return sections.join('\n\n')
+	}
 
 	amp.onDispose(async () => {
 		disposed = true
@@ -134,19 +143,30 @@ export default async function (amp: PluginAPI) {
 		await run?.closed
 	})
 
-	amp.registerTool({
-		name: 'claude_send',
-		title: 'Send to Claude Code',
+	amp.registerCommand('stop', { title: 'Stop Claude Code', category: 'claudie' }, async (ctx) => {
+		const run = active
+		if (!run || run.threadID !== ctx.thread?.id) {
+			await ctx.ui.notify('No Claude Code turn is running in this Amp thread.')
+			return
+		}
+		run.abort.abort()
+		await run.closed
+	})
+
+	for (const mode of ['implement', 'consult'] as const) amp.registerTool({
+		name: `claude_${mode}`,
+		title: mode === 'implement' ? 'Opus implementation' : 'Fable consultation',
+		transcriptGroup: mode === 'implement'
+			? { active: 'Opus is implementing', complete: 'Opus has replied' }
+			: { active: 'Consulting Fable', complete: 'Fable has spoken' },
 		description:
-			'Submit a task to Claude Code in the current checkout. Returns a session ID immediately; save it and use claude_wait until the turn ends. Do not edit concurrently or retry a failed or cancelled submission automatically.',
+			(mode === 'implement'
+				? 'Delegate an implementation task to Claude Code on Opus 5.5/high.'
+				: 'Consult Claude Code as a read-only external oracle on Fable 5.1/high.') +
+			' Runs in the current checkout and waits silently until the stream ends and the process exits. Returns the original reply, work summaries, and diagnostics. Do not edit concurrently or retry failed or cancelled work automatically. The user can cancel with claudie: Stop Claude Code.',
 		inputSchema: {
 			type: 'object',
 			properties: {
-				mode: {
-					type: 'string',
-					enum: ['implement', 'consult'],
-					description: 'implement uses Opus 5.5/high; consult uses Claude Code as a read-only external oracle on Fable 5.1/high. Keep the same mode on follow-ups. Start a new session when changing modes.',
-				},
 				instructions: {
 					type: 'string',
 					description:
@@ -158,10 +178,10 @@ export default async function (amp: PluginAPI) {
 					description:
 						'Image attachments as exact Amp attachment URLs or local paths (relative to the workspace or absolute). PNG, JPEG, GIF, and WebP are sent as image bytes, not links. Images in attached_image tags are included automatically; duplicate paths are sent once.',
 				},
-				session_id: {
-					type: 'string',
+				resume: {
+					type: 'boolean',
 					description:
-						'Exact saved session UUID for an authorized continuation of the same delegated task, including after plugin reload. Omit for a new task.',
+						'Continue the latest task sent through this tool in the same Amp thread and checkout, including after reload. Set true only for an authorized continuation; omit or set false for a new task.',
 				},
 				allowed_tools: {
 					type: 'array',
@@ -170,24 +190,18 @@ export default async function (amp: PluginAPI) {
 						'Implementation only: additional Claude permission rules for already-authorized work, such as Bash(bin/rails test *). Use scoped rules, not unrestricted Bash. File edits are already allowed. Not accepted for consultations.',
 				},
 			},
-			required: ['mode', 'instructions'],
+			required: ['instructions'],
 			additionalProperties: false,
 		},
 		async execute(input, ctx) {
 			if (disposed) throw new Error('The Claude relay has been unloaded.')
-			const mode = input.mode
-			if (mode !== 'implement' && mode !== 'consult') throw new Error('mode must be implement or consult.')
 			if (typeof input.instructions !== 'string') {
 				throw new Error('A message for Claude is required.')
 			}
 			const images = imageSources(input.instructions, input.images)
 			if (!input.instructions.trim() && !images.length) throw new Error('A message or image for Claude is required.')
-			if (
-				input.session_id !== undefined &&
-				(typeof input.session_id !== 'string' ||
-					!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.session_id))
-			) {
-				throw new Error('session_id must be a Claude Code session UUID.')
+			if (input.resume !== undefined && typeof input.resume !== 'boolean') {
+				throw new Error('resume must be a boolean.')
 			}
 			const allowedTools = input.allowed_tools ?? []
 			if (
@@ -199,25 +213,19 @@ export default async function (amp: PluginAPI) {
 			if (mode === 'consult' && allowedTools.length) throw new Error('Consultations do not accept allowed_tools.')
 			if (active) {
 				throw new Error(
-					`Claude Code session ${active.sessionID} is still running in ${cwd}. Wait before starting another turn.`,
+					`Claude Code is still running in ${cwd}. Wait before starting another turn.`,
 				)
 			}
 
 			const instructions = input.instructions
-			const sessionID = input.session_id ?? randomUUID()
-			const resume = input.session_id !== undefined
 			const run: Run = {
-				sessionID,
-				mode,
-				state: 'running',
-				startedAt: Date.now(),
+				threadID: ctx.thread.id,
 				abort: new AbortController(),
-				updates: [],
+				summaries: [],
 				stderr: '',
 				closed: Promise.resolve(),
 			}
 			active = run
-			runs.set(ctx.thread.id, run)
 
 			run.closed = (async () => {
 				let stream: Query | undefined
@@ -227,9 +235,37 @@ export default async function (amp: PluginAPI) {
 					subscription = ctx.thread.state.subscribe((state) => {
 						if (state === 'idle' || state === 'error') run.abort.abort()
 					})
+					const directory = join(process.env.XDG_STATE_HOME || join(homedir(), '.local', 'state'), 'amp', 'claudie')
+					const key = createHash('sha256').update(JSON.stringify([cwd, ctx.thread.id, mode])).digest('hex')
+					const sessionPath = join(directory, `${key}.session`)
+					let sessionID = randomUUID()
+					if (input.resume) {
+						try {
+							sessionID = await readFile(sessionPath, 'utf8')
+						} catch (error) {
+							if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+							throw new Error('No saved Claude task in this Amp thread, checkout, and mode. Start a new task with a self-contained brief.')
+						}
+						if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionID)) {
+							throw new Error('The saved Claude session is invalid. Start a new task with a self-contained brief.')
+						}
+					} else {
+						await rm(sessionPath, { force: true })
+					}
 					// Amp runs plugins in Bun, which caches this pinned npm dependency on first use.
 					const { query } = await import('@anthropic-ai/claude-agent-sdk@0.3.285')
 					const prompt = await imagePrompt(instructions, images, cwd, run.abort.signal)
+					if (run.abort.signal.aborted) return
+					if (!input.resume) {
+						await mkdir(directory, { recursive: true, mode: 0o700 })
+						const temporary = `${sessionPath}.${sessionID}.tmp`
+						try {
+							await writeFile(temporary, sessionID, { mode: 0o600 })
+							await rename(temporary, sessionPath)
+						} finally {
+							await rm(temporary, { force: true })
+						}
+					}
 					if (run.abort.signal.aborted) return
 					stream = query({
 						prompt,
@@ -249,7 +285,7 @@ export default async function (amp: PluginAPI) {
 							settingSources: ['user', 'project', 'local'],
 							systemPrompt: { type: 'preset', preset: 'claude_code', append: `${relayInstructions}\n\n${roleInstructions[mode]}` },
 							abortController: run.abort,
-							...(resume ? { resume: sessionID } : { sessionId: sessionID }),
+							...(input.resume ? { resume: sessionID } : { sessionId: sessionID }),
 							spawnClaudeCodeProcess: (options) => {
 								const child = spawn(options.command, options.args, {
 									cwd: options.cwd,
@@ -268,20 +304,8 @@ export default async function (amp: PluginAPI) {
 					})
 
 					for await (const message of stream) {
-						if (message.type === 'system' && message.subtype === 'init') {
-							run.updates.push({ type: 'started', model: message.model })
-						} else if (message.type === 'assistant') {
-							for (const block of message.message.content) {
-								if (block.type === 'tool_use') run.updates.push({ type: 'tool', name: block.name })
-							}
-						} else if (message.type === 'tool_progress') {
-							run.updates.push({
-								type: 'tool_progress',
-								name: message.tool_name,
-								elapsed_seconds: message.elapsed_time_seconds,
-							})
-						} else if (message.type === 'tool_use_summary') {
-							run.updates.push({ type: 'summary', text: message.summary })
+						if (message.type === 'tool_use_summary') {
+							run.summaries.push(message.summary)
 						} else if (message.type === 'result') {
 							if (message.session_id !== sessionID)
 								throw new Error('Claude returned a different session ID.')
@@ -296,89 +320,11 @@ export default async function (amp: PluginAPI) {
 					// The SDK's bounded cleanup can finish before the CLI process exits.
 					await childClosed
 					subscription?.unsubscribe()
-					run.state = run.abort.signal.aborted
-						? 'cancelled'
-						: run.error || !run.result || run.result.is_error || run.result.subtype !== 'success'
-							? 'failed'
-							: 'replied'
 					active = undefined
 				}
 			})()
-			return snapshot(run)
-		},
-	})
-
-	amp.registerTool({
-		name: 'claude_wait',
-		title: 'Wait for Claude Code',
-		description:
-			'Wait for the submitted Claude turn, or request cancellation. Returns progress and the unchanged SDK result. While state is running, keep waiting and report progress.',
-		inputSchema: {
-			type: 'object',
-			properties: {
-				session_id: { type: 'string', description: 'The session ID returned by claude_send.' },
-				cursor: {
-					type: 'integer',
-					minimum: 0,
-					description: 'The cursor from the previous response; omit to replay all updates.',
-				},
-				timeout_ms: {
-					type: 'integer',
-					minimum: 0,
-					maximum: 60000,
-					description: 'Wait duration, default 30000. Use 0 for an immediate status check.',
-				},
-				cancel: {
-					type: 'boolean',
-					description: 'Request cancellation only when the user asks to stop. Does not undo edits.',
-				},
-			},
-			required: ['session_id'],
-			additionalProperties: false,
-		},
-		async execute(input, ctx) {
-			const run = runs.get(ctx.thread.id)
-			if (!run || input.session_id !== run.sessionID) {
-				throw new Error(
-					'No matching turn in this Amp thread. To resume an authorized continuation after reload, use claude_send with the saved session_id and mode.',
-				)
-			}
-			const cursor = input.cursor ?? 0
-			const timeout = input.timeout_ms ?? 30000
-			if (
-				typeof cursor !== 'number' ||
-				!Number.isInteger(cursor) ||
-				cursor < 0 ||
-				cursor > run.updates.length
-			) {
-				throw new Error('cursor must refer to an update in this turn.')
-			}
-			if (
-				typeof timeout !== 'number' ||
-				!Number.isInteger(timeout) ||
-				timeout < 0 ||
-				timeout > 60000
-			) {
-				throw new Error('timeout_ms must be an integer from 0 to 60000.')
-			}
-			if (input.cancel !== undefined && typeof input.cancel !== 'boolean') {
-				throw new Error('cancel must be a boolean.')
-			}
-			if (input.cancel && run.state === 'running') run.abort.abort()
-			if (run.state === 'running' && timeout > 0) {
-				let timer: ReturnType<typeof setTimeout> | undefined
-				try {
-					await Promise.race([
-						run.closed,
-						new Promise<void>((resolve) => {
-							timer = setTimeout(resolve, timeout)
-						}),
-					])
-				} finally {
-					clearTimeout(timer)
-				}
-			}
-			return snapshot(run, cursor)
+			await run.closed
+			return formatReply(run)
 		},
 	})
 

@@ -79,11 +79,18 @@ with Claude to resume it after completion. Asking Claude to implement an oracle
 recommendation starts a new implementation session; asking Amp to implement it stays
 with Amp.
 
-Only one Claude turn can run through the plugin at a time. Cancelling the Amp
-turn or unloading the plugin stops the SDK worker without undoing edits. Claude
-persists the conversation; retain the returned session ID to resume after reload.
-Progress is held in memory until the next turn or reload. This is a machine-local
-plugin, not a global Amp plugin; do not install it in orbs.
+Each turn uses one tool call, which stays pending until the stream and process end.
+Implementation shows **Opus is implementing** then **Opus has replied**; consultations
+show **Consulting Fable** then **Fable has spoken**. There is no separate wait call or
+session-ID output. An Opus reply may be a clarification or blocker, not completed work.
+
+Only one Claude turn can run through the plugin at a time. The **claudie: Stop Claude
+Code** command, cancelling the Amp turn, or unloading the plugin stops the SDK worker
+without undoing edits. Claude persists the conversation; the plugin privately saves
+the latest session per checkout, Amp thread, and flow under
+`${XDG_STATE_HOME:-~/.local/state}/amp/claudie/`. Tools start a new task by default;
+`resume: true` explicitly continues the saved task, including after reload.
+This is a machine-local plugin, not a global Amp plugin; do not install it in orbs.
 
 Image attachments are sent as image bytes, not links. The plugin downloads Amp
 attachments through authenticated `amp files get` and removes temporary downloads
@@ -92,16 +99,13 @@ supported formats are PNG, JPEG, GIF, and WebP.
 
 The tracked entrypoint uses the stock Claude Code system prompt with appended
 handoff instructions, `acceptEdits` implementation permissions with optional scoped
-`allowed_tools`, and polling progress snapshots from `claude_wait`.
+`allowed_tools`.
 
 The currently installed entrypoint has separate local customizations:
 
 - It reads `~/.claude/SYSTEM.md` on each submission instead of using the stock
   prompt. A missing, unreadable, or empty file fails the handoff.
 - Implementation uses `bypassPermissions`; explicit deny rules still apply.
-- `claude_send` returns the prompt preview and session ID. `claude_wait` waits
-  once until the turn and process end, then returns the reply and diagnostics.
-- The **claudie: Stop Claude Code** command cancels a pending wait directly.
 
 These differences are not part of the tracked bootstrap copy. Preserve them
 when updating the installed entrypoint. Both variants use the same bundled skill.

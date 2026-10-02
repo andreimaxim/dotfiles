@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path'
 import { after, afterEach, beforeEach, test } from 'node:test'
 import { setTimeout as delay } from 'node:timers/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import type { PluginAPI, PluginToolContext, PluginToolDefinition } from '@ampcode/plugin'
+import type { PluginAPI, PluginCommandContext, PluginToolContext, PluginToolDefinition } from '@ampcode/plugin'
 import type { Options, SDKUserMessage } from '@anthropic-ai/claude-agent-sdk@0.3.285'
 
 // Run against either the dotfiles source or the installed relay without starting Claude.
@@ -28,6 +28,7 @@ let calls: Call[]
 let directory: string
 let oldPath: string | undefined
 let oldHome: string | undefined
+let oldState: string | undefined
 let dispose: () => Promise<void>
 
 beforeEach(async () => {
@@ -36,8 +37,10 @@ beforeEach(async () => {
 	directory = await mkdtemp(join(tmpdir(), 'claude image tests '))
 	oldPath = process.env.PATH
 	oldHome = process.env.HOME
+	oldState = process.env.XDG_STATE_HOME
 	process.env.PATH = `${directory}:${oldPath}`
 	process.env.HOME = directory
+	process.env.XDG_STATE_HOME = join(directory, 'state')
 	await mkdir(join(directory, '.claude'))
 	await writeFile(join(directory, '.claude', 'SYSTEM.md'), 'Test system prompt.')
 	await writeFile(join(directory, 'local photo.png'), png)
@@ -49,6 +52,8 @@ afterEach(async () => {
 	else process.env.PATH = oldPath
 	if (oldHome === undefined) delete process.env.HOME
 	else process.env.HOME = oldHome
+	if (oldState === undefined) delete process.env.XDG_STATE_HOME
+	else process.env.XDG_STATE_HOME = oldState
 	await rm(directory, { recursive: true, force: true })
 })
 
@@ -70,28 +75,28 @@ export function fakeQuery({ prompt, options }: Omit<Call, 'messages'>) {
 
 async function harness() {
 	const tools = new Map<string, PluginToolDefinition>()
+	let stop: (ctx: PluginCommandContext) => Promise<void>
 	await load({
 		system: { workspaceRoot: pathToFileURL(directory) },
 		helpers: { filePathFromURI: fileURLToPath },
 		onDispose: (callback: () => Promise<void>) => { dispose = callback },
 		registerTool: (tool: PluginToolDefinition) => { tools.set(tool.name, tool) },
-		registerCommand() {},
+		registerCommand: (_name: string, _options: unknown, callback: typeof stop) => { stop = callback },
 		registerSkill: async () => {},
 	} as unknown as PluginAPI)
 	const ctx = {
 		thread: { id: 'T-test', state: { subscribe: () => ({ unsubscribe() {} }) } },
+		ui: { notify: async () => {} },
 	} as unknown as PluginToolContext
 	const call = async (name: string, input: Record<string, unknown>) =>
 		await tools.get(name)!.execute(input, ctx) as string
 	return {
 		tools,
 		call,
+		stop: () => stop(ctx as unknown as PluginCommandContext),
 		async submit(input: Record<string, unknown>) {
-			const preview = await call('claude_send', { mode: 'implement', ...input })
-			const sessionID = preview.startsWith('{')
-				? JSON.parse(preview).session_id
-				: preview.match(/Claude session: ([0-9a-f-]{36})/)![1]
-			return { preview, sessionID }
+			const { mode = 'implement', ...message } = input
+			return await call(`claude_${mode}`, message)
 		},
 	}
 }
@@ -117,8 +122,7 @@ function imageBlock(data: Buffer, mediaType = 'image/png') {
 
 test('routes implementation to Opus and external-oracle consultations to read-only Fable/high', async () => {
 	const relay = await harness()
-	const implementation = await relay.submit({ mode: 'implement', instructions: 'Implement the agreed change.' })
-	await relay.call('claude_wait', { session_id: implementation.sessionID })
+	await relay.submit({ mode: 'implement', instructions: 'Implement the agreed change.' })
 	const worker = calls[0].options
 	assert.equal(worker.model, 'claude-opus-5-5')
 	assert.equal(worker.effort, 'high')
@@ -129,13 +133,11 @@ test('routes implementation to Opus and external-oracle consultations to read-on
 	assert.doesNotMatch(JSON.stringify(worker.systemPrompt), /external oracle: a read-only engineering advisor/)
 
 	const instructions = 'Review the change against the original requirements; do not fix it.'
-	const review = await relay.submit({ mode: 'consult', instructions })
-	const response = await relay.call('claude_wait', { session_id: review.sessionID })
+	const response = await relay.submit({ mode: 'consult', instructions })
 	assert.match(response, /Image received\./)
-	assert.notEqual(review.sessionID, implementation.sessionID)
 	assert.equal(calls[1].prompt, instructions)
 	const advisor = calls[1].options
-	assert.equal(advisor.sessionId, review.sessionID)
+	assert.notEqual(advisor.sessionId, worker.sessionId)
 	assert.equal(advisor.resume, undefined)
 	assert.equal(advisor.model, 'claude-fable-5-1')
 	assert.equal(advisor.effort, 'high')
@@ -166,17 +168,15 @@ test('routes implementation to Opus and external-oracle consultations to read-on
 
 test('resumes Fable consultations after reload with unchanged follow-ups and images', async () => {
 	const relay = await harness()
-	const first = await relay.submit({ mode: 'consult', instructions: 'Give a second opinion on options A and B.' })
-	await relay.call('claude_wait', { session_id: first.sessionID })
+	await relay.submit({ mode: 'consult', instructions: 'Give a second opinion on options A and B.' })
+	const sessionID = calls[0].options.sessionId
 	await dispose()
 	const reloaded = await harness()
 	const instructions = '  Does this screenshot change your recommendation?\n'
-	const next = await reloaded.submit({
-		mode: 'consult', session_id: first.sessionID, instructions, images: ['local photo.png'],
+	await reloaded.submit({
+		mode: 'consult', resume: true, instructions, images: ['local photo.png'],
 	})
-	await reloaded.call('claude_wait', { session_id: next.sessionID })
-	assert.equal(next.sessionID, first.sessionID)
-	assert.equal(calls[1].options.resume, first.sessionID)
+	assert.equal(calls[1].options.resume, sessionID)
 	assert.equal(calls[1].options.sessionId, undefined)
 	assert.equal(calls[1].options.model, 'claude-fable-5-1')
 	assert.equal(calls[1].options.effort, 'high')
@@ -184,42 +184,27 @@ test('resumes Fable consultations after reload with unchanged follow-ups and ima
 	assert.deepEqual(calls[1].messages[0].message.content, [imageBlock(png), { type: 'text', text: instructions }])
 })
 
-test('requires an explicit valid mode before starting either flow', async () => {
-	const relay = await harness()
-	assert.deepEqual([...relay.tools.keys()], ['claude_send', 'claude_wait'])
-	assert.deepEqual(relay.tools.get('claude_send')!.inputSchema.required, ['mode', 'instructions'])
-	for (const mode of [undefined, null, '', 'review', 'opus']) {
-		await assert.rejects(relay.call('claude_send', { mode, instructions: 'Review this.' }), /mode must be/)
-	}
-	assert.equal(calls.length, 0)
-})
-
 test('text-only prompts remain literal strings, including empty image lists', async () => {
 	const relay = await harness()
 	const instructions = '  Literal $HOME and `quotes`\r\nKeep trailing spaces.  '
-	const { sessionID } = await relay.submit({ instructions, images: [] })
-	await relay.call('claude_wait', { session_id: sessionID })
+	await relay.submit({ instructions, images: [] })
 	assert.equal(calls.length, 1)
 	assert.equal(calls[0].prompt, instructions)
-	assert.equal(calls[0].options.sessionId, sessionID)
 })
 
 test('new and resumed sessions receive native image blocks and unchanged message text', async () => {
 	const relay = await harness()
 	const instructions = '  Describe this photograph.\n'
-	const { preview, sessionID } = await relay.submit({ instructions, images: ['local photo.png'] })
-	await relay.call('claude_wait', { session_id: sessionID })
-	assert.equal(calls[0].options.sessionId, sessionID)
+	const output = await relay.submit({ instructions, images: ['local photo.png'] })
+	const sessionID = calls[0].options.sessionId
 	assert.deepEqual(calls[0].messages, [{
 		type: 'user', parent_tool_use_id: null,
 		message: { role: 'user', content: [imageBlock(png), { type: 'text', text: instructions }] },
 	}])
-	assert.ok(!preview.includes(png.toString('base64')))
+	assert.ok(!output.includes(png.toString('base64')))
 
 	const followUp = `<attached_image path="${join(directory, 'local photo.png')}">Original caption.</attached_image>`
-	const resumed = await relay.submit({ instructions: followUp, session_id: sessionID })
-	await relay.call('claude_wait', { session_id: resumed.sessionID })
-	assert.equal(resumed.sessionID, sessionID)
+	await relay.submit({ instructions: followUp, resume: true })
 	assert.equal(calls[1].options.resume, sessionID)
 	assert.equal(calls[1].options.sessionId, undefined)
 	assert.deepEqual(calls[1].messages[0].message.content, [imageBlock(png), { type: 'text', text: followUp }])
@@ -233,11 +218,10 @@ test('image-only messages support file URLs and detect the format from bytes, no
 	await writeFile(join(directory, 'animation'), gif)
 	await writeFile(join(directory, 'photo'), webp)
 	const relay = await harness()
-	const { sessionID } = await relay.submit({ instructions: '', images: [
+	await relay.submit({ instructions: '', images: [
 		pathToFileURL(join(directory, 'local photo.png')).href,
 		'actually-jpeg.png', '~/animation', 'photo',
 	] })
-	await relay.call('claude_wait', { session_id: sessionID })
 	assert.deepEqual(calls[0].messages[0].message.content, [
 		imageBlock(png), imageBlock(jpeg, 'image/jpeg'), imageBlock(gif, 'image/gif'), imageBlock(webp, 'image/webp'),
 	])
@@ -247,8 +231,7 @@ test('private attachment tags use authenticated amp files get once and remove do
 	await fakeAmp()
 	const relay = await harness()
 	const instructions = `<attached_image path="${attachment}">Screenshot.</attached_image>\n<attached_image path='${attachment}'/>`
-	const { sessionID } = await relay.submit({ instructions, images: [attachment] })
-	await relay.call('claude_wait', { session_id: sessionID })
+	await relay.submit({ instructions, images: [attachment] })
 	assert.deepEqual(calls[0].messages[0].message.content, [imageBlock(png), { type: 'text', text: instructions }])
 	const args = JSON.parse(await readFile(join(directory, 'download.json'), 'utf8'))
 	assert.deepEqual(args.slice(0, 4), ['files', 'get', attachment, '-o'])
@@ -259,28 +242,37 @@ test('private attachment tags use authenticated amp files get once and remove do
 test('failed downloads do not start Claude, clean up, and allow an explicit retry', async () => {
 	await fakeAmp('failure')
 	const relay = await harness()
-	const { sessionID } = await relay.submit({ instructions: 'Look at this', images: [attachment] })
-	const failure = await relay.call('claude_wait', { session_id: sessionID })
+	const failure = await relay.submit({ instructions: 'Look at this', images: [attachment] })
 	assert.match(failure, /attachment denied/)
 	assert.equal(calls.length, 0)
 	const args = JSON.parse(await readFile(join(directory, 'download.json'), 'utf8'))
 	await assert.rejects(access(dirname(args[4])), { code: 'ENOENT' })
-	await relay.submit({ instructions: 'Try the local copy.', images: ['local photo.png'], session_id: sessionID })
-	await relay.call('claude_wait', { session_id: sessionID })
-	assert.equal(calls[0].options.resume, sessionID)
+	await relay.submit({ instructions: 'Try the local copy.', images: ['local photo.png'] })
+	assert.equal(calls[0].options.resume, undefined)
+})
+
+test('a failed new task cannot resume an earlier task by mistake', async () => {
+	const relay = await harness()
+	await relay.submit({ instructions: 'An earlier task.' })
+	const failure = await relay.submit({ instructions: 'A different task.', images: ['missing.png'] })
+	assert.match(failure, /ENOENT/)
+	assert.equal(calls.length, 1)
+	assert.match(await relay.submit({ instructions: 'Continue.', resume: true }), /No saved Claude task/)
+	assert.equal(calls.length, 1)
 })
 
 test('cancellation aborts an attachment download without starting Claude or leaving temp files', async () => {
 	await fakeAmp('pending')
 	const relay = await harness()
-	const { sessionID } = await relay.submit({ instructions: '', images: [attachment] })
+	const pending = relay.submit({ instructions: '', images: [attachment] })
 	let args: string[] | undefined
 	for (let attempt = 0; attempt < 200 && !args; attempt++) {
 		try { args = JSON.parse(await readFile(join(directory, 'download.json'), 'utf8')) }
 		catch { await delay(10) }
 	}
 	assert.ok(args, 'attachment download started')
-	const result = await relay.call('claude_wait', { session_id: sessionID, cancel: true })
+	await relay.stop()
+	const result = await pending
 	assert.match(result, /cancelled/)
 	assert.equal(calls.length, 0)
 	await assert.rejects(access(dirname(args[4])), { code: 'ENOENT' })
@@ -290,9 +282,9 @@ test('missing and unsupported files produce useful errors rather than text-only 
 	const relay = await harness()
 	await writeFile(join(directory, 'not-a-photo.png'), '<html>Not an image</html>')
 	const missing = await relay.submit({ instructions: 'Look', images: ['missing.png'] })
-	assert.match(await relay.call('claude_wait', { session_id: missing.sessionID }), /ENOENT/)
+	assert.match(missing, /ENOENT/)
 	const invalid = await relay.submit({ instructions: 'Look', images: ['not-a-photo.png'] })
-	assert.match(await relay.call('claude_wait', { session_id: invalid.sessionID }), /Unsupported image/)
+	assert.match(invalid, /Unsupported image/)
 	assert.equal(calls.length, 0)
 })
 
