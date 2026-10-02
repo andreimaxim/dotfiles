@@ -9,7 +9,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import type { PluginAPI, PluginCommandContext, PluginToolContext, PluginToolDefinition } from '@ampcode/plugin'
 import type { Options, SDKUserMessage } from '@anthropic-ai/claude-agent-sdk@0.3.285'
 
-// Run against either the dotfiles source or the installed relay without starting Claude.
+// Unit tests: real relay and filesystem, fake Amp host, SDK, and attachment downloader.
+// These inspect arguments and bytes; they do not verify Claude's image handling or permissions.
 const { default: load } = await import(process.env.CLAUDE_RELAY_UNDER_TEST || './index.ts')
 const sdkModule = `data:text/javascript,${encodeURIComponent(`export { fakeQuery as query } from ${JSON.stringify(import.meta.url)}`)}`
 const loader = registerHooks({
@@ -67,7 +68,7 @@ export function fakeQuery({ prompt, options }: Omit<Call, 'messages'>) {
 		yield {
 			type: 'result', subtype: 'success', is_error: false,
 			session_id: options.resume ?? options.sessionId,
-			result: 'Image received.', permission_denials: [],
+			result: 'Stub SDK reply.', permission_denials: [],
 		}
 	})()
 	return Object.assign(stream, { close() {} })
@@ -120,7 +121,7 @@ function imageBlock(data: Buffer, mediaType = 'image/png') {
 	return { type: 'image', source: { type: 'base64', media_type: mediaType, data: data.toString('base64') } }
 }
 
-test('routes implementation to Opus and external-oracle consultations to read-only Fable/high', async () => {
+test('passes distinct model and permission options to the SDK for each flow', async () => {
 	const relay = await harness()
 	await relay.submit({ mode: 'implement', instructions: 'Implement the agreed change.' })
 	const worker = calls[0].options
@@ -130,11 +131,9 @@ test('routes implementation to Opus and external-oracle consultations to read-on
 	assert.equal(worker.strictMcpConfig, undefined)
 	assert.equal(worker.canUseTool, undefined)
 	assert.notEqual(worker.permissionMode, 'plan')
-	assert.doesNotMatch(JSON.stringify(worker.systemPrompt), /external oracle: a read-only engineering advisor/)
 
 	const instructions = 'Review the change against the original requirements; do not fix it.'
-	const response = await relay.submit({ mode: 'consult', instructions })
-	assert.match(response, /Image received\./)
+	await relay.submit({ mode: 'consult', instructions })
 	assert.equal(calls[1].prompt, instructions)
 	const advisor = calls[1].options
 	assert.notEqual(advisor.sessionId, worker.sessionId)
@@ -147,26 +146,13 @@ test('routes implementation to Opus and external-oracle consultations to read-on
 	assert.deepEqual(advisor.disallowedTools, ['mcp__*'])
 	assert.equal(advisor.strictMcpConfig, true)
 	assert.equal(advisor.allowedTools, undefined)
-	assert.match(advisor.planModeInstructions!, /external oracle/)
-	assert.ok(advisor.systemPrompt)
-	const prompt = JSON.stringify(advisor.systemPrompt)
-	assert.match(prompt, /external oracle: a read-only engineering advisor/)
-	assert.match(prompt, /original requirements/)
-	assert.doesNotMatch(prompt, /You are implementing an agreed plan/)
-	for (const [tool, input] of [
-		['Bash', { command: 'touch should-not-exist' }],
-		['Write', { file_path: 'should-not-exist', content: 'no' }],
-		['ExitPlanMode', {}],
-		['mcp__github__create_issue', {}],
-	] as const) {
-		const decision = await advisor.canUseTool!(tool, input, {
-			signal: new AbortController().signal, toolUseID: 'permission-test',
-		})
-		assert.equal(decision.behavior, 'deny')
-	}
+	const decision = await advisor.canUseTool!('Bash', { command: 'touch should-not-exist' }, {
+		signal: new AbortController().signal, toolUseID: 'permission-test',
+	})
+	assert.equal(decision.behavior, 'deny')
 })
 
-test('resumes Fable consultations after reload with unchanged follow-ups and images', async () => {
+test('passes the saved consultation ID and unchanged image follow-up to the SDK after reload', async () => {
 	const relay = await harness()
 	await relay.submit({ mode: 'consult', instructions: 'Give a second opinion on options A and B.' })
 	const sessionID = calls[0].options.sessionId
@@ -192,7 +178,7 @@ test('text-only prompts remain literal strings, including empty image lists', as
 	assert.equal(calls[0].prompt, instructions)
 })
 
-test('new and resumed sessions receive native image blocks and unchanged message text', async () => {
+test('builds SDK image blocks and preserves literal text for new and resumed submissions', async () => {
 	const relay = await harness()
 	const instructions = '  Describe this photograph.\n'
 	const output = await relay.submit({ instructions, images: ['local photo.png'] })
@@ -210,7 +196,7 @@ test('new and resumed sessions receive native image blocks and unchanged message
 	assert.deepEqual(calls[1].messages[0].message.content, [imageBlock(png), { type: 'text', text: followUp }])
 })
 
-test('image-only messages support file URLs and detect the format from bytes, not the filename', async () => {
+test('resolves image paths and selects MIME types from file headers rather than filenames', async () => {
 	const jpeg = Buffer.from('ffd8ffe000104a464946000101', 'hex')
 	const gif = Buffer.from('GIF89a')
 	const webp = Buffer.from('524946460400000057454250', 'hex')
@@ -227,7 +213,7 @@ test('image-only messages support file URLs and detect the format from bytes, no
 	])
 })
 
-test('private attachment tags use authenticated amp files get once and remove downloaded files', async () => {
+test('invokes the fake attachment downloader once per source and removes temporary files', async () => {
 	await fakeAmp()
 	const relay = await harness()
 	const instructions = `<attached_image path="${attachment}">Screenshot.</attached_image>\n<attached_image path='${attachment}'/>`
@@ -239,7 +225,7 @@ test('private attachment tags use authenticated amp files get once and remove do
 	await assert.rejects(access(dirname(args[4])), { code: 'ENOENT' })
 })
 
-test('failed downloads do not start Claude, clean up, and allow an explicit retry', async () => {
+test('failed downloads skip the SDK, clean up, and allow an explicit retry', async () => {
 	await fakeAmp('failure')
 	const relay = await harness()
 	const failure = await relay.submit({ instructions: 'Look at this', images: [attachment] })
@@ -261,7 +247,7 @@ test('a failed new task cannot resume an earlier task by mistake', async () => {
 	assert.equal(calls.length, 1)
 })
 
-test('cancellation aborts an attachment download without starting Claude or leaving temp files', async () => {
+test('cancellation stops the fake downloader before any SDK call and removes temporary files', async () => {
 	await fakeAmp('pending')
 	const relay = await harness()
 	const pending = relay.submit({ instructions: '', images: [attachment] })

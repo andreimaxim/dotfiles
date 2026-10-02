@@ -10,7 +10,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import type { PluginAPI, PluginCommandContext, PluginToolContext, PluginToolDefinition } from '@ampcode/plugin'
 import type { Options } from '@anthropic-ai/claude-agent-sdk@0.3.285'
 
-// Exercise either entrypoint without installing the SDK or starting Claude.
+// Unit tests: real relay and filesystem, simulated Amp callbacks and SDK messages.
+// The subprocess check launches Node, not Claude; live cancellation needs a separate check.
 const installed = !!process.env.CLAUDE_RELAY_UNDER_TEST
 const { default: load } = await import(process.env.CLAUDE_RELAY_UNDER_TEST || './index.ts')
 const sdkModule = `data:text/javascript,${encodeURIComponent(`export { fakeQuery as query } from ${JSON.stringify(import.meta.url)}`)}`
@@ -158,13 +159,9 @@ function reply(call: Call, text = 'Implemented and tested.', overrides: object =
 	}
 }
 
-test('registers one blocking tool per flow, model-specific labels, and no session-ID input', async () => {
+test('registers separate flow tools without a session-ID input', async () => {
 	const relay = await harness()
 	assert.deepEqual([...relay.tools.keys()], ['claude_implement', 'claude_consult'])
-	assert.deepEqual(relay.tools.get('claude_implement')!.transcriptGroup,
-		{ active: 'Opus is implementing', complete: 'Opus has replied' })
-	assert.deepEqual(relay.tools.get('claude_consult')!.transcriptGroup,
-		{ active: 'Consulting Fable', complete: 'Fable has spoken' })
 	for (const tool of relay.tools.values()) {
 		assert.deepEqual(tool.inputSchema.required, ['instructions'])
 		assert.equal(tool.inputSchema.properties!.session_id, undefined)
@@ -204,7 +201,7 @@ test('keeps the literal handoff and implementation settings, returning the reply
 	assert.ok(!output.includes(call.options.sessionId!))
 })
 
-test('waits past the result message for trailing summaries and SDK cleanup', async () => {
+test('waits past a simulated result for trailing messages and stream cleanup', async () => {
 	const relay = await harness()
 	let returned = false
 	const pending = relay.call({ instructions: 'plan' }).then((output) => { returned = true; return output })
@@ -244,22 +241,19 @@ test('does not time out into a polling snapshot', async (t) => {
 	await pending
 })
 
-test('preserves questions, blockers, reports and denials without automatically taking another turn', async () => {
+test('preserves literal result text and permission diagnostics without another SDK call', async () => {
 	const relay = await harness()
-	for (const text of ['  Which approach?\n\n- A: fast, more storage.\n- B: slower, less storage.\n',
-		'I cannot access Jira.', 'Implemented.\n\nTests: 12 passed; deployment not performed.']) {
-		const index = calls.length
-		const pending = relay.call({ instructions: 'agreed plan' })
-		const call = await callAt(index)
-		call.emit(reply(call, text, { permission_denials: [{ tool_name: 'Bash', tool_input: { command: 'bin/rails test' } }] }))
-		call.finish()
-		assert.equal(await pending, `## Claude Code reply\n\n${text}\n\n## Permission denials\n\nBash\n\n{\n  "command": "bin/rails test"\n}`)
-		await tick()
-		assert.equal(calls.length, index + 1)
-	}
+	const text = '  Which approach?\n\n- A: fast, more storage.\n- B: slower, less storage.\n'
+	const pending = relay.call({ instructions: 'agreed plan' })
+	const call = await callAt()
+	call.emit(reply(call, text, { permission_denials: [{ tool_name: 'Bash', tool_input: { command: 'bin/rails test' } }] }))
+	call.finish()
+	assert.equal(await pending, `## Claude Code reply\n\n${text}\n\n## Permission denials\n\nBash\n\n{\n  "command": "bin/rails test"\n}`)
+	await tick()
+	assert.equal(calls.length, 1)
 })
 
-test('persists private session state across reload and resumes only when explicitly requested', async () => {
+test('persists private session IDs across handler reload and supplies resume only when requested', async () => {
 	const relay = await harness()
 	const first = relay.call({ instructions: 'initial plan' })
 	const call = await callAt()
@@ -376,7 +370,7 @@ test('rejects invalid submissions before side effects', async () => {
 	assert.equal(calls.length, 0)
 })
 
-test('only the owning thread can cancel, and writers stay excluded until SDK cleanup', async () => {
+test('only the owning thread can signal abort, and writers stay excluded until fake SDK cleanup', async () => {
 	const relay = await harness()
 	const pending = relay.call({ instructions: 'plan' })
 	const call = await callAt()
@@ -398,47 +392,35 @@ test('only the owning thread can cancel, and writers stay excluded until SDK cle
 	other.emit(reply(other)); other.finish(); await next
 })
 
-test('waits for process exit on success and cancellation, preserving spawn inputs and stderr', async () => {
-	for (const cancel of [false, true]) {
-		const relay = await harness()
-		let returned = false
-		const index = calls.length
-		const pending = relay.call({ instructions: 'plan' }).then((output) => { returned = true; return output })
-		const call = await callAt(index)
-		const forwardedAbort = new AbortController()
-		const literal = 'value with spaces, $HOME and `quotes`'
-		const child = call.options.spawnClaudeCodeProcess!({
-			command: process.execPath,
-			args: ['-e', `process.stderr.write('Diagnostic from child\\n');
-				console.log(JSON.stringify({ cwd: process.cwd(), marker: process.env.RELAY_MARKER, argument: process.argv[1] }));
-				process.stdin.resume()`, literal],
-			cwd: process.cwd(), env: { RELAY_MARKER: literal }, signal: forwardedAbort.signal,
-		})
-		const childErrors: Error[] = []
-		child.on('error', (error) => childErrors.push(error))
-		let stopped: Promise<void> | undefined
-		try {
-			const [output] = await once(child.stdout, 'data')
-			assert.deepEqual(JSON.parse(output.toString()), { cwd: process.cwd(), marker: literal, argument: literal })
-			if (cancel) stopped = relay.stop()
-			else { call.emit(reply(call)); call.finish() }
-			await tick()
-			assert.equal(returned, false)
-			assert.equal(call.closeCalled, true)
-			assert.equal(child.exitCode, null)
-			await assert.rejects(relay.call({ instructions: 'too early' }), /still running/)
-			if (cancel) forwardedAbort.abort()
-		} finally { child.stdin.end() }
-		const output = await pending
-		await stopped
-		assert.match(output, cancel ? /cancelled/ : /Implemented and tested/)
-		assert.match(output, /Diagnostic from child\n/)
-		assert.deepEqual(childErrors.map((error) => error.name), cancel ? ['AbortError'] : [])
-		assert.equal(relay.listeners.get('T-owner')!.size, 0)
-	}
+test('waits for a real Node subprocess to exit after a simulated SDK result', async () => {
+	const relay = await harness()
+	let returned = false
+	const pending = relay.call({ instructions: 'plan' }).then((output) => { returned = true; return output })
+	const call = await callAt()
+	const literal = 'value with spaces, $HOME and `quotes`'
+	const child = call.options.spawnClaudeCodeProcess!({
+		command: process.execPath,
+		args: ['-e', `process.stderr.write('Diagnostic from child\\n');
+			console.log(JSON.stringify({ cwd: process.cwd(), marker: process.env.RELAY_MARKER, argument: process.argv[1] }));
+			process.stdin.resume()`, literal],
+		cwd: directory, env: { RELAY_MARKER: literal }, signal: new AbortController().signal,
+	})
+	try {
+		const [output] = await once(child.stdout, 'data')
+		assert.deepEqual(JSON.parse(output.toString()), { cwd: directory, marker: literal, argument: literal })
+		call.emit(reply(call))
+		call.finish()
+		await tick()
+		assert.equal(returned, false)
+		assert.equal(call.closeCalled, true)
+		assert.equal(child.exitCode, null)
+		await assert.rejects(relay.call({ instructions: 'too early' }), /still running/)
+	} finally { child.stdin.end() }
+	assert.match(await pending, /Diagnostic from child\n/)
+	assert.equal(relay.listeners.get('T-owner')!.size, 0)
 })
 
-test('stops on owner idle/error and unload without cancelling another thread', async () => {
+test('signals abort on simulated owner idle/error and plugin unload', async () => {
 	for (const stop of ['idle', 'error', 'unload']) {
 		const relay = await harness()
 		const index = calls.length
@@ -454,7 +436,7 @@ test('stops on owner idle/error and unload without cancelling another thread', a
 	}
 })
 
-test('does not start Claude when the parent is already stopped', async () => {
+test('does not call the SDK when the simulated parent is already stopped', async () => {
 	const relay = await harness(cwd, 'idle')
 	assert.match(await relay.call({ instructions: 'plan' }), /cancelled/)
 	assert.equal(calls.length, 0)

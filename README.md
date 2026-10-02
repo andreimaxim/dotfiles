@@ -110,11 +110,41 @@ The currently installed entrypoint has separate local customizations:
 These differences are not part of the tracked bootstrap copy. Preserve them
 when updating the installed entrypoint. Both variants use the same bundled skill.
 
-Run the relay tests without installing dependencies or starting Claude:
+### Verifying Claudie
+
+The unit tests run the relay against a fake Amp host, fake SDK responses, and a
+fake attachment downloader. They check argument construction, literal output,
+session files, cleanup, and waiting for a Node subprocess. They do not launch
+Claude, verify SDK permission enforcement, or render Amp's transcript.
 
 ```sh
-node --test files/amp/plugins/claudie/*.test.ts
+node --test files/amp/plugins/claudie/*.unit.test.ts
+
+CLAUDE_RELAY_UNDER_TEST="$HOME/.config/amp/plugins/claudie/index.ts" \
+  node --test files/amp/plugins/claudie/*.unit.test.ts
 ```
+
+Live acceptance checks use the installed plugin and real Claude SDK, with user
+approval because they consume model usage. Use a disposable fixture and keep the
+production prompt, permissions, and relay unchanged:
+
+- Have Opus implement a bounded change. Check the resulting files with assertions
+  written independently of its implementation and tests.
+- Reload the plugin and continue the session. Verify information from the first
+  turn that is neither repeated in the follow-up nor stored in fixture files.
+- Have Fable review a known defect. Check the finding against the defect and compare
+  fixture files before and after. An unchanged fixture demonstrates that run was
+  read-only, not that arbitrary writes are impossible. For image changes, also check
+  an attached image whose answer is absent from the text prompt.
+- Invoke Stop while a fixture command is running. Observe the real worker and its
+  descendant exiting, and verify the cancelled command cannot finish its write.
+  An abort flag or manually killing the child is not evidence of SDK cancellation.
+- Inspect the rendered pending and completed Amp rows: model-specific labels,
+  one call per turn, no session UUID, and the preserved reply panel.
+
+Record observed model IDs from Claude's transcript and report live, unit, and UI
+results separately. A failed setup or unavailable browser is an unverified check,
+not a pass. Do not replace missing live evidence with a larger unit-test count.
 
 ## Claude Code
 
