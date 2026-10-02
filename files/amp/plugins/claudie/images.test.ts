@@ -126,6 +126,7 @@ test('routes implementation to Opus and external-oracle consultations to read-on
 	assert.equal(worker.strictMcpConfig, undefined)
 	assert.equal(worker.canUseTool, undefined)
 	assert.notEqual(worker.permissionMode, 'plan')
+	assert.doesNotMatch(JSON.stringify(worker.systemPrompt), /external oracle: a read-only engineering advisor/)
 
 	const instructions = 'Review the change against the original requirements; do not fix it.'
 	const review = await relay.submit({ mode: 'consult', instructions })

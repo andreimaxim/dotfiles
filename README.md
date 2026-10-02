@@ -63,19 +63,48 @@ flow. The oracle inspects the code and returns findings or recommendations witho
 implementing them. Consultations use plan permissions, inspection tools, no MCP
 tools, and deny requests that need permission approval.
 
-Each handoff covers one bounded task. Amp presents Claude's reply unchanged;
-your answer to an outstanding task question returns to the same session and mode.
+Each handoff covers one bounded task. In both modes, Amp assesses Claude's result
+and writes its own response or continues already-authorized work. For implementation,
+Amp assesses the changes and verifies as needed before claiming completion. A review
+request alone does not authorize implementation. Claude's original reply remains in
+the tool result.
+
+If Claude asks a question needed to finish the task, Amp can answer using explicit
+decisions already settled with you in the conversation. Missing answers, new choices,
+and new permissions come back to you. Continuations use the same session and mode;
+Amp forwards your replies unchanged or supplies the relevant settled decision context.
 Once Claude completes the task or answers the consultation, ordinary conversation
 stays with Amp, including questions about Claude's work. Explicitly ask to continue
-with Claude to resume it. Amp does not answer Claude's questions or extend the
-handoff automatically. Asking Claude to implement an oracle recommendation starts
-a new implementation session; asking Amp to implement it stays with Amp.
+with Claude to resume it after completion. Asking Claude to implement an oracle
+recommendation starts a new implementation session; asking Amp to implement it stays
+with Amp.
 
 Only one Claude turn can run through the plugin at a time. Cancelling the Amp
 turn or unloading the plugin stops the SDK worker without undoing edits. Claude
 persists the conversation; retain the returned session ID to resume after reload.
 Progress is held in memory until the next turn or reload. This is a machine-local
 plugin, not a global Amp plugin; do not install it in orbs.
+
+Image attachments are sent as image bytes, not links. The plugin downloads Amp
+attachments through authenticated `amp files get` and removes temporary downloads
+after encoding, including on failure or cancellation. Local paths also work;
+supported formats are PNG, JPEG, GIF, and WebP.
+
+The tracked entrypoint uses the stock Claude Code system prompt with appended
+handoff instructions, `acceptEdits` implementation permissions with optional scoped
+`allowed_tools`, and polling progress snapshots from `claude_wait`.
+
+The currently installed entrypoint has separate local customizations:
+
+- It reads `~/.claude/SYSTEM.md` on each submission instead of using the stock
+  prompt. A missing, unreadable, or empty file fails the handoff.
+- Implementation uses `bypassPermissions`; explicit deny rules still apply.
+- `claude_send` returns the prompt preview and session ID. `claude_wait` waits
+  once until the turn and process end, then returns the reply and diagnostics.
+- The **claudie: Stop Claude Code** command cancels a pending wait directly.
+
+These differences are not part of the tracked bootstrap copy. Preserve them
+when updating the installed entrypoint. Both variants use the same bundled skill.
 
 Run the relay tests without installing dependencies or starting Claude:
 

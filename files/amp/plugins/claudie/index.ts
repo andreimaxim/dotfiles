@@ -65,8 +65,8 @@ async function imagePrompt(instructions: string, sources: string[], cwd: string,
 }
 
 const relayInstructions = [
-	'Amp has delegated one bounded task to you and will present your final reply unchanged.',
-	'If you need a decision, clarification, access, or permission to finish this task, state the question or blocker and end your turn. The user can answer in this same session.',
+	'Amp has delegated one bounded task to you.',
+	'If you need a decision, clarification, access, or permission to finish this task, state the question or blocker and end your turn. Amp may answer from settled user decisions in its conversation; otherwise it will ask the user. Answers return in this same session.',
 	'When the task is complete or the consultation is answered, report the result and stop. Amp handles subsequent conversation by default.',
 	'Do not bypass denied permissions. Do not commit, push, deploy, or change shared data unless the handoff explicitly authorizes it.',
 ].join(' ')
@@ -138,7 +138,7 @@ export default async function (amp: PluginAPI) {
 		name: 'claude_send',
 		title: 'Send to Claude Code',
 		description:
-			'Send a delegated implementation task to Opus 5.5/high, or consult Claude Code as a read-only external oracle on Fable 5.1/high. Resume only for a user answer to Claude’s outstanding task question or an explicit request to continue with Claude; otherwise respond in Amp. Images in attached_image tags are forwarded automatically; use images for other attachments. Returns a session ID immediately; use claude_wait until the turn ends. Present Claude’s reply unchanged and yield to the user. Do not edit concurrently or automatically send another message.',
+			'Submit a task to Claude Code in the current checkout. Returns a session ID immediately; save it and use claude_wait until the turn ends. Do not edit concurrently or retry a failed or cancelled submission automatically.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -150,7 +150,7 @@ export default async function (amp: PluginAPI) {
 				instructions: {
 					type: 'string',
 					description:
-						'For implementation: the agreed outcome, constraints, relevant files and existing changes, acceptance criteria, and verification commands. For consultation: the question or review scope, original requirements, constraints, alternatives, and available evidence. For a resumed session: the user’s message unchanged, including attached_image tags. May be empty for an image-only message.',
+						'Self-contained task brief or follow-up message for Claude. Preserve user replies and attached_image tags unchanged; for Amp-supplied clarifications, include the answer and supporting conversation context. May be empty for an image-only message.',
 				},
 				images: {
 					type: 'array',
@@ -312,7 +312,7 @@ export default async function (amp: PluginAPI) {
 		name: 'claude_wait',
 		title: 'Wait for Claude Code',
 		description:
-			'Wait up to 30 seconds for the submitted Claude turn, or request cancellation. Returns progress and the unchanged SDK result. While state is running, keep waiting and report progress. Once it ends, present result.result verbatim and yield to the user. Do not automatically send another message.',
+			'Wait for the submitted Claude turn, or request cancellation. Returns progress and the unchanged SDK result. While state is running, keep waiting and report progress.',
 		inputSchema: {
 			type: 'object',
 			properties: {
