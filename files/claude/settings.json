@@ -21,14 +21,16 @@
   "disableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,
   "enabledPlugins": {
-    "telemetry@builtin": true
+    "telemetry@builtin": true,
+    "engineering@andreimaxim": true
   },
   "extraKnownMarketplaces": {
     "andreimaxim": {
       "source": {
         "source": "github",
         "repo": "andreimaxim/skills"
-      }
+      },
+      "autoUpdate": true
     }
   },
   "skipWebFetchPreflight": true,

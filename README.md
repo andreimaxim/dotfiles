@@ -47,19 +47,29 @@ For updates, pull the repository, review `mise bootstrap --dry-run`, then run
 
 ## Amp
 
-Bootstrap deploys the Claude Code implementer plugin into
-`~/.config/amp/plugins/claude-implementer/`. It copies the entrypoint because Amp
-does not discover symlinked entrypoints, and links the bundled skill. The plugin
+Bootstrap deploys Claudie, the Claude Code handoff plugin, into
+`~/.config/amp/plugins/claudie/`. It copies the entrypoint because Amp
+does not discover symlinked entrypoints, and links the bundled
+`claudie:handing-off-to-claude` skill. The plugin
 uses the Claude Agent SDK; Amp's Bun runtime caches the pinned SDK on first use.
 It runs the existing `claude` binary with its login and user/project/local settings.
 Claude Code 2.1.285 or newer must already be installed and authenticated.
 
 After planning in Amp, say "ask Claude to implement". Claude runs on Opus 5.5
-with high effort in the same directory. Amp shows progress through bounded waits,
-relays Claude's reply unchanged, and forwards your response to the same session.
-Questions, trade-offs, blockers, and reports are all ordinary replies: Amp does
-not interpret them, fix blockers, continue automatically, or invoke a reviewer.
-Ask Amp separately if you want its review or help.
+with high effort in the same directory. For independent advice, Claude Code acts
+as an external oracle on Fable 5.1/high. "Ask Claude for a review", "ask Claude for
+a second opinion", and "consult Claude as an oracle" use this same consultation
+flow. The oracle inspects the code and returns findings or recommendations without
+implementing them. Consultations use plan permissions, inspection tools, no MCP
+tools, and deny requests that need permission approval.
+
+Each handoff covers one bounded task. Amp presents Claude's reply unchanged;
+your answer to an outstanding task question returns to the same session and mode.
+Once Claude completes the task or answers the consultation, ordinary conversation
+stays with Amp, including questions about Claude's work. Explicitly ask to continue
+with Claude to resume it. Amp does not answer Claude's questions or extend the
+handoff automatically. Asking Claude to implement an oracle recommendation starts
+a new implementation session; asking Amp to implement it stays with Amp.
 
 Only one Claude turn can run through the plugin at a time. Cancelling the Amp
 turn or unloading the plugin stops the SDK worker without undoing edits. Claude
@@ -70,13 +80,13 @@ plugin, not a global Amp plugin; do not install it in orbs.
 Run the relay tests without installing dependencies or starting Claude:
 
 ```sh
-node --test files/amp/plugins/claude-implementer/index.test.ts
+node --test files/amp/plugins/claudie/*.test.ts
 ```
 
 ## Claude Code
 
 Bootstrap links the tracked settings, replacement system prompt, Finder, Oracle,
-Librarian, and 6 personal skills into `~/.claude/`. It leaves credentials,
+Librarian, and 2 personal skills into `~/.claude/`. It leaves credentials,
 sessions, unrelated skills, and other Claude files alone. Back up an existing
 `~/.claude/settings.json` before replacing it; the normal dotfile conflict checks
 apply. Claude Code itself must already be installed and authenticated.

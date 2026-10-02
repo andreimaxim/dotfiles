@@ -84,8 +84,8 @@ age = "latest"
 "~/.npmrc" = { source = "files/npm/npmrc", mode = "symlink" }
 "~/.default-gems" = { source = "files/ruby/default-gems", mode = "symlink" }
 # Amp discovers only real plugin entrypoints, so copy index.ts.
-"~/.config/amp/plugins/claude-implementer/index.ts" = { source = "files/amp/plugins/claude-implementer/index.ts", mode = "copy" }
-"~/.config/amp/plugins/claude-implementer/skills/implementing/SKILL.md" = { source = "files/amp/plugins/claude-implementer/skills/implementing/SKILL.md", mode = "symlink" }
+"~/.config/amp/plugins/claudie/index.ts" = { source = "files/amp/plugins/claudie/index.ts", mode = "copy" }
+"~/.config/amp/plugins/claudie/skills/handing-off-to-claude/SKILL.md" = { source = "files/amp/plugins/claudie/skills/handing-off-to-claude/SKILL.md", mode = "symlink" }
 "~/.config/bat/config" = { source = "files/bat/config", mode = "symlink" }
 "~/.config/btop/btop.conf" = { source = "files/btop/btop.conf", mode = "symlink" }
 "~/.config/btop/themes/catppuccin_mocha.theme" = { source = "files/btop/catppuccin_mocha.theme", mode = "symlink" }
@@ -102,10 +102,6 @@ age = "latest"
 "~/.claude/agents/finder.md" = { source = "files/claude/agents/finder.md", mode = "symlink" }
 "~/.claude/agents/oracle.md" = { source = "files/claude/agents/oracle.md", mode = "symlink" }
 "~/.claude/agents/librarian.md" = { source = "files/claude/agents/librarian.md", mode = "symlink" }
-"~/.claude/skills/implementing" = { source = "files/claude/skills/implementing", mode = "symlink" }
-"~/.claude/skills/naming-things" = { source = "files/claude/skills/naming-things", mode = "symlink" }
-"~/.claude/skills/shaping" = { source = "files/claude/skills/shaping", mode = "symlink" }
-"~/.claude/skills/understanding-code" = { source = "files/claude/skills/understanding-code", mode = "symlink" }
 "~/.claude/skills/using-papertrail" = { source = "files/claude/skills/using-papertrail", mode = "symlink" }
 "~/.claude/skills/using-rollbar" = { source = "files/claude/skills/using-rollbar", mode = "symlink" }
 "~/.local/bin/onepassword-ssh" = { source = "files/bin/onepassword-ssh", mode = "symlink" }

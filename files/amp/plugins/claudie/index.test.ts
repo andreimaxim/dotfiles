@@ -119,6 +119,7 @@ async function harness(workspace: string | null = cwd, initialState = 'running')
 		listeners,
 		dispose: () => dispose(),
 		async call(name: string, input: Record<string, unknown>, thread = 'T-owner') {
+			if (name === 'claude_send') input = { mode: 'implement', ...input }
 			const ctx = {
 				thread: {
 					id: thread,
@@ -160,8 +161,9 @@ function reply(call: Call, text = 'Implemented and tested.', overrides: object =
 
 test('registers tools and skill without loading the SDK; requires a workspace', async () => {
 	const enabled = await harness()
-	assert.deepEqual([...enabled.tools.keys()], ['claude_implement', 'claude_implement_wait'])
-	assert.deepEqual(enabled.skills, ['skills/implementing'])
+	assert.deepEqual([...enabled.tools.keys()], ['claude_send', 'claude_wait'])
+	assert.deepEqual(enabled.tools.get('claude_send')!.inputSchema.required, ['mode', 'instructions'])
+	assert.deepEqual(enabled.skills, ['skills/handing-off-to-claude'])
 	const disabled = await harness(null)
 	assert.equal(disabled.tools.size, 0)
 	assert.deepEqual(disabled.skills, [])
@@ -171,7 +173,8 @@ test('registers tools and skill without loading the SDK; requires a workspace', 
 test('starts promptly with the literal handoff, existing CLI/settings, and Opus 5.5/high', async () => {
 	const relay = await harness()
 	const instructions = '  Keep $HOME and `quotes` literal.\n$(touch injected); "do not expand"\n'
-	const start = await relay.call('claude_implement', {
+	const start = await relay.call('claude_send', {
+		mode: 'implement',
 		instructions,
 		allowed_tools: ['Bash(bin/rails test *)', 'Bash(git diff *)'],
 	})
@@ -197,7 +200,7 @@ test('starts promptly with the literal handoff, existing CLI/settings, and Opus 
 
 test('exposes replayable progress before the reply and consumes trailing SDK messages', async () => {
 	const relay = await harness()
-	const start = await relay.call('claude_implement', { instructions: 'plan' })
+	const start = await relay.call('claude_send', { instructions: 'plan' })
 	const call = await callAt()
 	call.emit({ type: 'system', subtype: 'init', model: 'claude-opus-5-5' })
 	call.emit({
@@ -210,7 +213,7 @@ test('exposes replayable progress before the reply and consumes trailing SDK mes
 		},
 	})
 	await tick()
-	const first = await relay.call('claude_implement_wait', {
+	const first = await relay.call('claude_wait', {
 		session_id: start.session_id,
 		timeout_ms: 0,
 	})
@@ -223,7 +226,7 @@ test('exposes replayable progress before the reply and consumes trailing SDK mes
 	call.emit({ type: 'tool_progress', tool_name: 'Bash', elapsed_time_seconds: 37 })
 	call.emit(reply(call, 'Which trade-off do you prefer?'))
 	await tick()
-	const pending = await relay.call('claude_implement_wait', {
+	const pending = await relay.call('claude_wait', {
 		session_id: start.session_id,
 		cursor: first.cursor,
 		timeout_ms: 0,
@@ -231,19 +234,19 @@ test('exposes replayable progress before the reply and consumes trailing SDK mes
 	assert.equal(pending.state, 'running')
 	assert.deepEqual(pending.updates, [{ type: 'tool_progress', name: 'Bash', elapsed_seconds: 37 }])
 	await assert.rejects(
-		relay.call('claude_implement', { instructions: 'too early' }),
+		relay.call('claude_send', { instructions: 'too early' }),
 		/still running/,
 	)
 	call.emit({ type: 'tool_use_summary', summary: 'Read the model; no files changed.' })
 	call.finish()
-	const end = await relay.call('claude_implement_wait', {
+	const end = await relay.call('claude_wait', {
 		session_id: start.session_id,
 		cursor: pending.cursor,
 	})
 	assert.equal(end.state, 'replied')
 	assert.equal(end.result.result, 'Which trade-off do you prefer?')
 	assert.deepEqual(end.updates, [{ type: 'summary', text: 'Read the model; no files changed.' }])
-	const replay = await relay.call('claude_implement_wait', {
+	const replay = await relay.call('claude_wait', {
 		session_id: start.session_id,
 		cursor: first.cursor,
 	})
@@ -254,12 +257,12 @@ test('exposes replayable progress before the reply and consumes trailing SDK mes
 
 test('bounds the wait without ending the Claude turn', async (t) => {
 	const relay = await harness()
-	const start = await relay.call('claude_implement', { instructions: 'plan' })
+	const start = await relay.call('claude_send', { instructions: 'plan' })
 	const call = await callAt()
 	t.mock.timers.enable({ apis: ['setTimeout'] })
 	let returned = false
 	const waiting = relay
-		.call('claude_implement_wait', { session_id: start.session_id })
+		.call('claude_wait', { session_id: start.session_id })
 		.then((value) => {
 			returned = true
 			return value
@@ -281,14 +284,14 @@ test('passes questions, blockers, reports and denials unchanged without taking a
 		'Implemented the change.\n\nTests: 12 passed; deployment not performed.',
 	]) {
 		const index = calls.length
-		const start = await relay.call('claude_implement', { instructions: 'agreed plan' })
+		const start = await relay.call('claude_send', { instructions: 'agreed plan' })
 		const call = await callAt(index)
 		const result = reply(call, text, {
 			permission_denials: [{ tool_name: 'Bash', tool_input: { command: 'bin/rails test' } }],
 		})
 		call.emit(result)
 		call.finish()
-		const end = await relay.call('claude_implement_wait', { session_id: start.session_id })
+		const end = await relay.call('claude_wait', { session_id: start.session_id })
 		assert.equal(end.state, 'replied')
 		assert.deepEqual(end.result, result)
 		await tick()
@@ -298,19 +301,19 @@ test('passes questions, blockers, reports and denials unchanged without taking a
 
 test('resumes the exact session with the user’s unchanged message, including after reload', async () => {
 	const relay = await harness()
-	const first = await relay.call('claude_implement', { instructions: 'initial plan' })
+	const first = await relay.call('claude_send', { instructions: 'initial plan' })
 	const call = await callAt()
 	call.emit(reply(call, 'Do you prefer A or B?'))
 	call.finish()
-	await relay.call('claude_implement_wait', { session_id: first.session_id })
+	await relay.call('claude_wait', { session_id: first.session_id })
 	await relay.dispose()
 	const reloaded = await harness()
 	await assert.rejects(
-		reloaded.call('claude_implement_wait', { session_id: first.session_id }),
+		reloaded.call('claude_wait', { session_id: first.session_id }),
 		/No matching turn/,
 	)
 	const instructions = ' B, please.\nKeep the existing interface. '
-	const second = await reloaded.call('claude_implement', {
+	const second = await reloaded.call('claude_send', {
 		instructions,
 		session_id: first.session_id,
 	})
@@ -327,7 +330,7 @@ test('retains SDK failure details, including an error result followed by an exce
 	const relay = await harness()
 	for (const scenario of ['missing-result', 'wrong-session', 'model-error', 'transport-error']) {
 		const index = calls.length
-		const start = await relay.call('claude_implement', { instructions: scenario })
+		const start = await relay.call('claude_send', { instructions: scenario })
 		const call = await callAt(index)
 		if (scenario === 'wrong-session')
 			call.emit(reply(call, 'wrong', { session_id: '00000000-0000-0000-0000-000000000000' }))
@@ -343,7 +346,7 @@ test('retains SDK failure details, including an error result followed by an exce
 			})
 			call.fail(new Error('CLI exited with code 7'))
 		} else call.finish()
-		const end = await relay.call('claude_implement_wait', { session_id: start.session_id })
+		const end = await relay.call('claude_wait', { session_id: start.session_id })
 		assert.equal(end.state, 'failed')
 		if (scenario === 'missing-result') assert.match(end.error, /without a result/)
 		if (scenario === 'wrong-session') assert.match(end.error, /different session/)
@@ -360,12 +363,12 @@ test('retains SDK failure details, including an error result followed by an exce
 test('reports startup errors and releases the writer for a user-requested retry', async () => {
 	const relay = await harness()
 	startupError = new Error('spawn claude ENOENT')
-	const start = await relay.call('claude_implement', { instructions: 'plan' })
-	const failed = await relay.call('claude_implement_wait', { session_id: start.session_id })
+	const start = await relay.call('claude_send', { instructions: 'plan' })
+	const failed = await relay.call('claude_wait', { session_id: start.session_id })
 	assert.equal(failed.state, 'failed')
 	assert.match(failed.error, /spawn claude ENOENT/)
 	startupError = undefined
-	const retry = await relay.call('claude_implement', {
+	const retry = await relay.call('claude_send', {
 		instructions: 'try again',
 		session_id: start.session_id,
 	})
@@ -377,14 +380,18 @@ test('reports startup errors and releases the writer for a user-requested retry'
 test('rejects invalid submissions and polling arguments before their side effects', async () => {
 	const relay = await harness()
 	for (const input of [
+		{ instructions: 'plan', mode: undefined },
+		{ instructions: 'plan', mode: 'review' },
+		{ instructions: 'plan', mode: null },
+		{ instructions: 'review', mode: 'consult', allowed_tools: ['Bash'] },
 		{ instructions: ' ' },
 		{ instructions: 'plan', session_id: '--continue' },
 		{ instructions: 'plan', allowed_tools: 'Bash' },
 		{ instructions: 'plan', allowed_tools: [''] },
 	])
-		await assert.rejects(relay.call('claude_implement', input))
+		await assert.rejects(relay.call('claude_send', input))
 	assert.equal(calls.length, 0)
-	const start = await relay.call('claude_implement', { instructions: 'plan' })
+	const start = await relay.call('claude_send', { instructions: 'plan' })
 	const call = await callAt()
 	for (const input of [
 		{ cursor: -1 },
@@ -398,7 +405,7 @@ test('rejects invalid submissions and polling arguments before their side effect
 		{ cancel: 'yes' },
 	])
 		await assert.rejects(
-			relay.call('claude_implement_wait', { session_id: start.session_id, ...input }),
+			relay.call('claude_wait', { session_id: start.session_id, ...input }),
 		)
 	assert.equal(call.options.abortController!.signal.aborted, false)
 	assert.equal(calls.length, 1)
@@ -406,34 +413,34 @@ test('rejects invalid submissions and polling arguments before their side effect
 
 test('isolates thread results and prevents concurrent writers until SDK cleanup finishes', async () => {
 	const relay = await harness()
-	const start = await relay.call('claude_implement', { instructions: 'plan' })
+	const start = await relay.call('claude_send', { instructions: 'plan' })
 	const call = await callAt()
 	await assert.rejects(
-		relay.call('claude_implement', { instructions: 'another writer' }, 'T-other'),
+		relay.call('claude_send', { instructions: 'another writer' }, 'T-other'),
 		/still running/,
 	)
 	await assert.rejects(
-		relay.call('claude_implement_wait', { session_id: start.session_id, cancel: true }, 'T-other'),
+		relay.call('claude_wait', { session_id: start.session_id, cancel: true }, 'T-other'),
 		/No matching turn/,
 	)
 	const cleanup = Promise.withResolvers<void>()
 	call.cleanup = cleanup.promise
-	const stopped = relay.call('claude_implement_wait', {
+	const stopped = relay.call('claude_wait', {
 		session_id: start.session_id,
 		cancel: true,
 	})
 	await tick()
 	assert.equal(call.options.abortController!.signal.aborted, true)
 	await assert.rejects(
-		relay.call('claude_implement', { instructions: 'too early' }),
+		relay.call('claude_send', { instructions: 'too early' }),
 		/still running/,
 	)
 	cleanup.resolve()
 	assert.equal((await stopped).state, 'cancelled')
 	assert.equal(call.closeCalled, true)
-	const second = await relay.call('claude_implement', { instructions: 'new plan' }, 'T-other')
+	const second = await relay.call('claude_send', { instructions: 'new plan' }, 'T-other')
 	assert.equal(second.state, 'running')
-	const previous = await relay.call('claude_implement_wait', { session_id: start.session_id })
+	const previous = await relay.call('claude_wait', { session_id: start.session_id })
 	assert.equal(previous.state, 'cancelled')
 })
 
@@ -441,7 +448,7 @@ test('keeps the writer until the process closes, preserving spawn inputs, stderr
 	for (const cancel of [false, true]) {
 		const relay = await harness()
 		const index = calls.length
-		const start = await relay.call('claude_implement', { instructions: 'plan' })
+		const start = await relay.call('claude_send', { instructions: 'plan' })
 		const call = await callAt(index)
 		const forwardedAbort = new AbortController()
 		const literal = 'value with spaces, $HOME and `quotes`'
@@ -470,7 +477,7 @@ test('keeps the writer until the process closes, preserving spawn inputs, stderr
 				argument: literal,
 			})
 			if (cancel) {
-				await relay.call('claude_implement_wait', {
+				await relay.call('claude_wait', {
 					session_id: start.session_id,
 					cancel: true,
 					timeout_ms: 0,
@@ -481,21 +488,21 @@ test('keeps the writer until the process closes, preserving spawn inputs, stderr
 			}
 			await tick()
 			assert.equal(call.closeCalled, true)
-			const pending = await relay.call('claude_implement_wait', {
+			const pending = await relay.call('claude_wait', {
 				session_id: start.session_id,
 				timeout_ms: 0,
 			})
 			assert.equal(pending.state, 'running')
 			assert.equal(child.exitCode, null)
 			await assert.rejects(
-				relay.call('claude_implement', { instructions: 'too early' }),
+				relay.call('claude_send', { instructions: 'too early' }),
 				/still running/,
 			)
 			if (cancel) forwardedAbort.abort()
 		} finally {
 			child.stdin.end()
 		}
-		const end = await relay.call('claude_implement_wait', { session_id: start.session_id })
+		const end = await relay.call('claude_wait', { session_id: start.session_id })
 		assert.equal(end.state, cancel ? 'cancelled' : 'replied')
 		assert.equal(end.stderr, 'Diagnostic from child\n')
 		assert.deepEqual(
@@ -510,19 +517,19 @@ test('stops on owner idle/error and on unload, but not on another thread’s sta
 	for (const stop of ['idle', 'error', 'unload']) {
 		const relay = await harness()
 		const index = calls.length
-		const start = await relay.call('claude_implement', { instructions: 'plan' })
+		const start = await relay.call('claude_send', { instructions: 'plan' })
 		const call = await callAt(index)
 		assert.equal(relay.listeners.has('T-other'), false)
 		if (stop === 'unload') await relay.dispose()
 		else for (const listener of relay.listeners.get('T-owner')!) listener(stop)
-		const end = await relay.call('claude_implement_wait', { session_id: start.session_id })
+		const end = await relay.call('claude_wait', { session_id: start.session_id })
 		assert.equal(end.state, 'cancelled')
 		assert.equal(call.options.abortController!.signal.aborted, true)
 		assert.equal(call.closeCalled, true)
 		assert.equal(relay.listeners.get('T-owner')!.size, 0)
 		if (stop === 'unload')
 			await assert.rejects(
-				relay.call('claude_implement', { instructions: 'late call' }),
+				relay.call('claude_send', { instructions: 'late call' }),
 				/unloaded/,
 			)
 	}
@@ -530,8 +537,8 @@ test('stops on owner idle/error and on unload, but not on another thread’s sta
 
 test('does not start Claude if the parent already stopped while the SDK was loading', async () => {
 	const relay = await harness(cwd, 'idle')
-	const start = await relay.call('claude_implement', { instructions: 'plan' })
-	const end = await relay.call('claude_implement_wait', { session_id: start.session_id })
+	const start = await relay.call('claude_send', { instructions: 'plan' })
+	const end = await relay.call('claude_wait', { session_id: start.session_id })
 	assert.equal(end.state, 'cancelled')
 	assert.equal(calls.length, 0)
 	assert.equal(relay.listeners.get('T-owner')!.size, 0)
