@@ -85,6 +85,7 @@ age = "latest"
 "~/.default-gems" = { source = "files/ruby/default-gems", mode = "symlink" }
 # Amp discovers only real plugin entrypoints, so copy index.ts.
 "~/.config/amp/plugins/claudie/index.ts" = { source = "files/amp/plugins/claudie/index.ts", mode = "copy" }
+"~/.config/amp/plugins/claudie/system-prompt.ts" = { source = "files/amp/plugins/claudie/system-prompt.ts", mode = "copy" }
 "~/.config/amp/plugins/claudie/skills/handing-off-to-claude/SKILL.md" = { source = "files/amp/plugins/claudie/skills/handing-off-to-claude/SKILL.md", mode = "symlink" }
 "~/.config/bat/config" = { source = "files/bat/config", mode = "symlink" }
 "~/.config/btop/btop.conf" = { source = "files/btop/btop.conf", mode = "symlink" }

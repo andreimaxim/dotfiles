@@ -97,18 +97,18 @@ attachments through authenticated `amp files get` and removes temporary download
 after encoding, including on failure or cancellation. Local paths also work;
 supported formats are PNG, JPEG, GIF, and WebP.
 
-The tracked entrypoint uses the stock Claude Code system prompt with appended
-handoff instructions, `acceptEdits` implementation permissions with optional scoped
-`allowed_tools`.
+The plugin imports its replacement system prompt from the bundled
+`system-prompt.ts` module and appends handoff and role instructions. It does not
+read `~/.claude/SYSTEM.md`. Reload Claudie after changing the bundled prompt;
+start a fresh Claude task to avoid a resumed session's saved prompt.
 
-The currently installed entrypoint has separate local customizations:
+The tracked entrypoint uses `acceptEdits` implementation permissions with optional
+scoped `allowed_tools`. The currently installed entrypoint instead uses
+`bypassPermissions`; explicit deny rules still apply.
 
-- It reads `~/.claude/SYSTEM.md` on each submission instead of using the stock
-  prompt. A missing, unreadable, or empty file fails the handoff.
-- Implementation uses `bypassPermissions`; explicit deny rules still apply.
-
-These differences are not part of the tracked bootstrap copy. Preserve them
-when updating the installed entrypoint. Both variants use the same bundled skill.
+This permission difference is not part of the tracked bootstrap copy. Preserve it
+when updating the installed entrypoint. Both variants use the same bundled prompt
+and skill.
 
 ### Verifying Claudie
 

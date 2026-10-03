@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import type { PluginAPI, Subscription, ThreadID } from '@ampcode/plugin'
 import type { Query, SDKResultMessage, SDKUserMessage } from '@anthropic-ai/claude-agent-sdk@0.3.285'
+import systemPrompt from './system-prompt.ts'
 
 export const description =
 	'Relays implementation to Opus 5.5/high or consults Claude Code as a read-only external oracle on Fable 5.1/high. Supports follow-ups and images in the same checkout. Not for orbs.'
@@ -283,7 +284,7 @@ export default async function (amp: PluginAPI) {
 								canUseTool: async () => ({ behavior: 'deny', message: 'This consultation is read-only. Report the missing evidence or access in your reply.' }),
 							} : { permissionMode: 'acceptEdits', allowedTools }),
 							settingSources: ['user', 'project', 'local'],
-							systemPrompt: { type: 'preset', preset: 'claude_code', append: `${relayInstructions}\n\n${roleInstructions[mode]}` },
+							systemPrompt: `${systemPrompt}\n\n${relayInstructions}\n\n${roleInstructions[mode]}`,
 							abortController: run.abort,
 							...(input.resume ? { resume: sessionID } : { sessionId: sessionID }),
 							spawnClaudeCodeProcess: (options) => {
