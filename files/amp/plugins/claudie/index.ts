@@ -156,10 +156,10 @@ export default async function (amp: PluginAPI) {
 
 	for (const mode of ['implement', 'consult'] as const) amp.registerTool({
 		name: `claude_${mode}`,
-		title: mode === 'implement' ? 'Opus implementation' : 'Fable consultation',
+		title: mode === 'implement' ? 'Claude Code implementation' : 'Claude consultation',
 		transcriptGroup: mode === 'implement'
-			? { active: 'Opus is implementing', complete: 'Opus has replied' }
-			: { active: 'Consulting Fable', complete: 'Fable has spoken' },
+			? { active: 'Implementing with Claude Code…', complete: 'Claude has finished implementing' }
+			: { active: 'Consulting with Claude…', complete: 'Claude has finished consulting' },
 		description:
 			(mode === 'implement'
 				? 'Delegate an implementation task to Claude Code on Opus 5.5/high.'
@@ -277,7 +277,8 @@ export default async function (amp: PluginAPI) {
 							pathToClaudeCodeExecutable: 'claude',
 							...(mode === 'consult' ? {
 								permissionMode: 'plan',
-								tools: ['Read', 'Glob', 'Grep', 'Bash'],
+								tools: ['Read', 'Glob', 'Grep', 'Bash', 'Skill'],
+								skills: 'all',
 								disallowedTools: ['mcp__*'],
 								strictMcpConfig: true,
 								planModeInstructions: 'Answer the supplied question as an external oracle. Do not create a plan file or request a transition to implementation.',

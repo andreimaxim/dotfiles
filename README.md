@@ -61,7 +61,9 @@ as an external oracle on Fable 5.1/high. "Ask Claude for a review", "ask Claude 
 a second opinion", and "consult Claude as an oracle" use this same consultation
 flow. The oracle inspects the code and returns findings or recommendations without
 implementing them. Consultations use plan permissions, inspection tools, no MCP
-tools, and deny requests that need permission approval.
+tools, and deny requests that need permission approval. Fable can invoke all
+discovered Claude skills through `Skill`; skill workflows remain subject to the
+read-only consultation boundary.
 
 Each handoff covers one bounded task. In both modes, Amp assesses Claude's result
 and writes its own response or continues already-authorized work. For implementation,
@@ -80,9 +82,10 @@ recommendation starts a new implementation session; asking Amp to implement it s
 with Amp.
 
 Each turn uses one tool call, which stays pending until the stream and process end.
-Implementation shows **Opus is implementing** then **Opus has replied**; consultations
-show **Consulting Fable** then **Fable has spoken**. There is no separate wait call or
-session-ID output. An Opus reply may be a clarification or blocker, not completed work.
+Implementation shows **Implementing with Claude Code…** then **Claude has finished
+implementing**. Consultations show **Consulting with Claude…** then **Claude has finished
+consulting**. There is no separate wait call or session-ID output. Claude's reply may
+be a clarification or blocker, not completed work.
 
 Only one Claude turn can run through the plugin at a time. The **claudie: Stop Claude
 Code** command, cancelling the Amp turn, or unloading the plugin stops the SDK worker
@@ -125,7 +128,7 @@ responses with test doubles. Cancellation tests are deferred for now.
   fixture files before and after. An unchanged fixture demonstrates that run was
   read-only, not that arbitrary writes are impossible. For image changes, also check
   an attached image whose answer is absent from the text prompt.
-- Inspect the rendered pending and completed Amp rows: model-specific labels,
+- Inspect the rendered pending and completed Amp rows: implementation/consultation labels,
   one call per turn, no session UUID, and the preserved reply panel.
 
 Record observed model IDs from Claude's transcript and report SDK and UI
