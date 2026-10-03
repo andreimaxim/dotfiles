@@ -9,19 +9,18 @@ Search migrated Papertrail logs with `papertrail_list_environments` and `papertr
 
 ## Prerequisite
 
-The user must configure the read-only Papertrail MCP server separately. This skill
-does not install a server or credentials. It requires `papertrail_list_environments`
-and `papertrail_get` with the contracts described below. Use their actual names
-exposed by Claude Code, which may include an `mcp__<server>__` prefix; do not guess
-a server name or substitute tools with different schemas. If either tool is
-unavailable, stop and report the missing prerequisite. Do not bypass it with
-direct credential access or HTTP calls from Bash.
+This skill requires `papertrail_list_environments` and `papertrail_get` from a
+read-only Papertrail MCP server with the contracts described below. Use the tool
+names exposed by the current host, including any required server prefix. Do not
+guess a server name or substitute tools with different schemas. If either tool
+is unavailable, report the missing prerequisite rather than accessing credentials
+or making HTTP calls from the shell.
 
 ## Choose the credential environment
 
 Call `papertrail_list_environments` before the first request when the environment is not already established. Use the user-requested environment when it is listed, or the only listed environment when there is just one. Otherwise ask which configured environment to use; do not assume production has a particular name.
 
-Keep the top-level `environment` consistent across a paginated search. It selects the token and regional API origin; it is not a log filter.
+Keep the top-level `environment` consistent across a paginated search. It selects the token and regional API origin. It does not filter logs.
 
 Replace `<credential-environment>` below with that exact discovered value. The
 hostnames and timestamps in examples are fictional; derive the actual filter and
