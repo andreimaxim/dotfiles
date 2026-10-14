@@ -6,10 +6,7 @@
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_FEEDBACK_COMMAND": "1"
   },
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
+  "attribution": false,
   "permissions": {
     "deny": [
       "AskUserQuestion"
@@ -22,15 +19,17 @@
   "workflowKeywordTriggerEnabled": false,
   "enabledPlugins": {
     "telemetry@builtin": true,
-    "engineering@andreimaxim": true
+    "cc-plugin-sec-default@builtin": false,
+    "plan-and-build@andreimaxim": true,
+    "write-for-models@andreimaxim": true,
+    "write-for-people@andreimaxim": true
   },
   "extraKnownMarketplaces": {
     "andreimaxim": {
       "source": {
         "source": "github",
-        "repo": "andreimaxim/skills"
-      },
-      "autoUpdate": true
+        "repo": "andreimaxim/claude-plugins"
+      }
     }
   },
   "skipWebFetchPreflight": true,
@@ -46,10 +45,15 @@
       "effortLevel": "high"
     }
   },
+  "advisorModel": "fable",
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
   "channelsEnabled": false,
   "timeFormat": "auto",
   "autoMemoryEnabled": false,
@@ -63,5 +67,6 @@
   "remoteControlAtStartup": false,
   "inputNeededNotifEnabled": false,
   "agentPushNotifEnabled": false,
+  "voiceEnabled": true,
   "claudeInChromeDefaultEnabled": false
 }
