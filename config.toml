@@ -100,9 +100,6 @@ age = "latest"
 "~/.config/nvim" = { source = "files/nvim", mode = "symlink-each" }
 "~/.claude/settings.json" = { source = "files/claude/settings.json", mode = "symlink" }
 "~/.claude/SYSTEM.md" = { source = "files/claude/SYSTEM.md", mode = "symlink" }
-"~/.claude/agents/finder.md" = { source = "files/claude/agents/finder.md", mode = "symlink" }
-"~/.claude/agents/oracle.md" = { source = "files/claude/agents/oracle.md", mode = "symlink" }
-"~/.claude/agents/librarian.md" = { source = "files/claude/agents/librarian.md", mode = "symlink" }
 "~/.local/bin/onepassword-ssh" = { source = "files/bin/onepassword-ssh", mode = "symlink" }
 "~/.local/bin/onepassword-ssh-sign" = { source = "files/bin/onepassword-ssh-sign", mode = "symlink" }
 "~/.local/bin/mise-project-exec" = { source = "files/bin/mise-project-exec", mode = "symlink" }

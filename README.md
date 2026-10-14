@@ -137,11 +137,11 @@ not a pass.
 
 ## Claude Code
 
-Bootstrap links the tracked settings, replacement system prompt, Finder, Oracle,
-Librarian, and 2 personal skills into `~/.claude/`. It leaves credentials,
-sessions, unrelated skills, and other Claude files alone. Back up an existing
-`~/.claude/settings.json` before replacing it; the normal dotfile conflict checks
-apply. Claude Code itself must already be installed and authenticated.
+Bootstrap links the tracked settings and replacement system prompt into
+`~/.claude/`. It leaves credentials, sessions, skills, and other Claude files
+alone. Back up an existing `~/.claude/settings.json` before replacing it; the
+normal dotfile conflict checks apply. Claude Code itself must already be
+installed and authenticated.
 
 ## Projects
 
