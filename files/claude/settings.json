@@ -63,6 +63,7 @@
   "editorMode": "normal",
   "verbose": false,
   "autoCompactEnabled": false,
+  "idleCompaction": false,
   "fileCheckpointingEnabled": false,
   "remoteControlAtStartup": false,
   "inputNeededNotifEnabled": false,
