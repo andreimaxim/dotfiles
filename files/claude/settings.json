@@ -13,11 +13,13 @@
   },
   "permissions": {
     "deny": [
-      "AskUserQuestion"
+      "AskUserQuestion",
+      "Agent(andreimaxim)"
     ],
     "defaultMode": "bypassPermissions"
   },
   "model": "opus",
+  "agent": "andreimaxim",
   "disableRemoteControl": true,
   "disableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,

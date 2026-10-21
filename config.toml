@@ -95,7 +95,7 @@ age = "latest"
 "~/.config/tmux/tmux.conf" = { source = "files/tmux/tmux.conf", mode = "symlink" }
 "~/.config/nvim" = { source = "files/nvim", mode = "symlink-each" }
 "~/.claude/settings.json" = { source = "files/claude/settings.json", mode = "symlink" }
-"~/.claude/SYSTEM.md" = { source = "files/claude/SYSTEM.md", mode = "symlink" }
+"~/.claude/agents/andreimaxim.md" = { source = "files/claude/agents/andreimaxim.md", mode = "symlink" }
 "~/.local/bin/onepassword-ssh" = { source = "files/bin/onepassword-ssh", mode = "symlink" }
 "~/.local/bin/onepassword-ssh-sign" = { source = "files/bin/onepassword-ssh-sign", mode = "symlink" }
 "~/.local/bin/mise-project-exec" = { source = "files/bin/mise-project-exec", mode = "symlink" }
