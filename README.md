@@ -8,7 +8,7 @@ the global mise configuration and is expected at `~/.config/mise`.
 ```sh
 sudo apt update && sudo apt install -y git curl ca-certificates
 curl --proto '=https' --tlsv1.2 --silent --show-error --fail --location https://mise.run |
-  MISE_VERSION=v2026.7.12 sh
+  MISE_VERSION=v2026.10.17 sh
 export PATH="$HOME/.local/bin:$PATH"
 mkdir -p ~/.config
 git clone https://github.com/andreimaxim/dotfiles.git ~/.config/mise

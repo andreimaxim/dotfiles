@@ -13,7 +13,7 @@ bootstrap and apt.
   PostgreSQL, Redis, and other service containers.
 - Keep changes focused and do not introduce alternative machine managers.
 
-Parse TOML/JSON with Python stdlib and validate with mise v2026.7.12. Prefer
+Parse TOML/JSON with Python stdlib and validate with mise v2026.10.17. Prefer
 `mise config ls`, `mise ls`, status checks, and `mise bootstrap --dry-run` with
 an isolated HOME/XDG environment. **Never run a real `mise bootstrap` unless
 the user explicitly requests activation.** Do not install packages or start

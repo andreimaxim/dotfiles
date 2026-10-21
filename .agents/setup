@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-required_version=2026.7.12
+required_version=2026.10.17
 installed_version=
 if [[ -x "$HOME/.local/bin/mise" ]]; then
   installed_version=$("$HOME/.local/bin/mise" --version | awk '{ print $1 }')
