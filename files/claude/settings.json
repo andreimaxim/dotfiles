@@ -16,7 +16,7 @@
       "AskUserQuestion",
       "Agent(andreimaxim)"
     ],
-    "defaultMode": "bypassPermissions"
+    "defaultMode": "auto"
   },
   "model": "opus",
   "agent": "andreimaxim",
@@ -45,10 +45,15 @@
   "effortLevel": "high",
   "modelSettings": {
     "claude-fable-5-1": {
-      "effortLevel": "high"
+      "effortLevel": "high",
+      "autoCompactWindow": 473000
     },
     "claude-opus-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "high",
+      "autoCompactWindow": 473000
+    },
+    "claude-haiku-5-5": {
+      "autoCompactWindow": 473000
     }
   },
   "promptSuggestionEnabled": false,
@@ -63,11 +68,11 @@
   "timeFormat": "auto",
   "autoMemoryEnabled": false,
   "showThinkingSummaries": false,
-  "skipDangerousModePermissionPrompt": true,
+  "skipAutoPermissionPrompt": true,
   "theme": "auto",
   "editorMode": "normal",
   "verbose": false,
-  "autoCompactEnabled": false,
+  "autoCompactEnabled": true,
   "idleCompaction": false,
   "fileCheckpointingEnabled": false,
   "remoteControlAtStartup": false,
