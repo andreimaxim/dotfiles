@@ -19,24 +19,15 @@
     "defaultMode": "auto"
   },
   "model": "opus",
-  "agent": "andreimaxim",
+  "worktree": {
+    "baseRef": "fresh"
+  },
   "disableRemoteControl": true,
   "disableWorkflows": false,
   "workflowKeywordTriggerEnabled": false,
   "enabledPlugins": {
     "telemetry@builtin": true,
-    "cc-plugin-sec-default@builtin": false,
-    "plan-and-build@andreimaxim": true,
-    "write-for-models@andreimaxim": true,
-    "write-for-people@andreimaxim": true
-  },
-  "extraKnownMarketplaces": {
-    "andreimaxim": {
-      "source": {
-        "source": "github",
-        "repo": "andreimaxim/claude-plugins"
-      }
-    }
+    "cc-plugin-sec-default@builtin": false
   },
   "skipWebFetchPreflight": true,
   "feedbackSurveyRate": 0,
@@ -58,6 +49,7 @@
   },
   "promptSuggestionEnabled": false,
   "awaySummaryEnabled": false,
+  "agent": "andreimaxim",
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "voice": {
@@ -68,16 +60,25 @@
   "timeFormat": "auto",
   "autoMemoryEnabled": false,
   "showThinkingSummaries": false,
-  "skipAutoPermissionPrompt": true,
   "theme": "auto",
   "editorMode": "normal",
   "verbose": false,
   "autoCompactEnabled": true,
   "idleCompaction": false,
+  "switchModelsOnFlag": true,
   "fileCheckpointingEnabled": false,
   "remoteControlAtStartup": false,
+  "crossSessionInbound": "accept",
   "inputNeededNotifEnabled": false,
   "agentPushNotifEnabled": false,
+  "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "claudeInChromeDefaultEnabled": false
+  "claudeInChromeDefaultEnabled": false,
+  "pluginConfigs": {
+    "cc-plugin-agents-md@builtin": {
+      "options": {
+        "instructionFiles": "claude-md-or-agents-md"
+      }
+    }
+  }
 }
