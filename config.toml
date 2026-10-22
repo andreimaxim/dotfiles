@@ -35,7 +35,7 @@ tmux = "3.7b"
 go = "latest"
 fnox = "latest"
 age = "latest"
-claude = { version = "latest", auto_update = true }
+claude = { version = "latest", auto_update = true, minimum_release_age = "0s" }
 
 [bootstrap.packages]
 "apt:git" = "latest"
