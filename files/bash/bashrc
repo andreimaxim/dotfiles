@@ -36,11 +36,6 @@ alias rdb='bin/rails dbconsole' rdm='bin/rails db:migrate' rdr='bin/rails db:rol
 alias rgc='bin/rails g controller' rgj='bin/rails g job' rgm='bin/rails g model' rgs='bin/rails g script'
 if command -v docker >/dev/null 2>&1; then alias d=docker; fi
 
-eval "$(mise activate bash)"
-eval "$(fzf --bash)"
-eval "$(zoxide init bash)"
-eval "$(starship init bash)"
-
 # Tell WezTerm the current WSL directory so new tabs can inherit it instead of
 # inferring the Windows working directory of wsl.exe.
 __wezterm_set_cwd() {
@@ -62,3 +57,8 @@ __windows_terminal_set_cwd() {
   fi
 }
 PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }__windows_terminal_set_cwd"
+
+eval "$(mise activate bash)"
+eval "$(fzf --bash)"
+eval "$(starship init bash)"
+eval "$(zoxide init bash)"
